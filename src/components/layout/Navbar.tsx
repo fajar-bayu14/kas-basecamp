@@ -42,7 +42,7 @@ export function Navbar({ onOpenQuickInput, isAdmin = false }: NavbarProps) {
     await logoutAdminAction();
     setIsLoggingOut(false);
     toast.success('Berhasil logout. Status kembali menjadi Guest.');
-    router.refresh();
+    window.location.reload();
   };
 
   const handleQuickInputClick = () => {

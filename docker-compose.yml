@@ -12,7 +12,8 @@ services:
       - DATABASE_URL=mysql://kas_user:kas_password@db:3306/catatan_kas
       - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-@FajarBayu23404}
-      - SESSION_SECRET=${SESSION_SECRET:-kas-minggu-secret-auth-salt-2026}
+      - SESSION_SECRET=${SESSION_SECRET:-kas-basecamp-auth-secret-salt-2026}
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
     depends_on:
       db:
         condition: service_healthy

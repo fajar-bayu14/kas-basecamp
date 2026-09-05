@@ -55,7 +55,7 @@ export function LoginModal({
       if (onSuccess) {
         onSuccess();
       }
-      router.refresh();
+      window.location.reload();
     } else {
       toast.error(res.error || 'Username atau password salah.');
     }

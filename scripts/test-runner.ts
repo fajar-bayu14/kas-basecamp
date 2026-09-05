@@ -26,6 +26,14 @@ async function runTests() {
       'Kredensial default admin & @FajarBayu23404 terverifikasi valid'
     );
     assert(
+      verifyCredentials('Admin', '@FajarBayu23404') === true,
+      'Username "Admin" (case-insensitive) terverifikasi valid'
+    );
+    assert(
+      verifyCredentials(' admin ', '@FajarBayu23404') === true,
+      'Username dengan spasi luar berhasil di-trim dan valid'
+    );
+    assert(
       verifyCredentials('admin', 'wrong_password') === false,
       'Kredensial salah berhasil ditolak'
     );
