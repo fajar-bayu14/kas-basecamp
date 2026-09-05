@@ -10,9 +10,6 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=mysql://kas_user:kas_password@db:3306/catatan_kas
-      - GOOGLE_SERVICE_ACCOUNT_EMAIL=${GOOGLE_SERVICE_ACCOUNT_EMAIL}
-      - GOOGLE_PRIVATE_KEY=${GOOGLE_PRIVATE_KEY}
-      - GOOGLE_SHEET_ID=${GOOGLE_SHEET_ID}
     depends_on:
       db:
         condition: service_healthy

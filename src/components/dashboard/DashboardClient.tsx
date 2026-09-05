@@ -116,7 +116,7 @@ export function DashboardClient({
             Dashboard Kas Mingguan
           </h1>
           <p className="text-xs sm:text-sm text-emerald-100/90 mt-1 max-w-lg">
-            Pantau akumulasi kas, periksa ketercapaian iuran mingguan, dan ekspor data langsung ke spreadsheet.
+            Pantau akumulasi kas, periksa ketercapaian iuran mingguan, dan unduh rekapan data instan ke file CSV.
           </p>
         </div>
 

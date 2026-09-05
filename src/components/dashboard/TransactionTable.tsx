@@ -15,18 +15,14 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { deleteTransaction } from '@/app/actions/transaction';
-import { exportToGoogleSheetsAction } from '@/app/actions/export';
 import { toast } from 'sonner';
 import {
   Search,
   Download,
-  Share2,
   Trash2,
   Calendar,
   Layers,
   FileSpreadsheet,
-  CheckCircle2,
-  ExternalLink,
 } from 'lucide-react';
 
 interface TransactionItem {
@@ -77,7 +73,6 @@ export function TransactionTable({
   onYearChange,
 }: TransactionTableProps) {
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [isExportingSheets, setIsExportingSheets] = React.useState(false);
 
   // Filter transactions by search query
   const filteredTransactions = React.useMemo(() => {
@@ -110,40 +105,6 @@ export function TransactionTable({
     }
   };
 
-  // Handle Google Sheets Export
-  const handleExportSheets = async () => {
-    setIsExportingSheets(true);
-    toast.loading('Menghubungkan ke Google Sheets API...', { id: 'gsheet-export' });
-
-    const res = await exportToGoogleSheetsAction(
-      currentMonth,
-      currentYear,
-      selectedWeek
-    );
-    setIsExportingSheets(false);
-
-    if (res.success) {
-      toast.success(
-        `Sukses! ${res.count} data transaksi berhasil disinkronkan ke Google Spreadsheet.`,
-        {
-          id: 'gsheet-export',
-          duration: 6000,
-          action: res.url
-            ? {
-                label: 'Buka Sheet',
-                onClick: () => window.open(res.url, '_blank'),
-              }
-            : undefined,
-        }
-      );
-    } else {
-      toast.error(res.error || 'Gagal ekspor ke Google Sheets.', {
-        id: 'gsheet-export',
-        duration: 5000,
-      });
-    }
-  };
-
   // CSV direct download url
   const csvDownloadUrl = `/api/export/csv?month=${currentMonth}&year=${currentYear}${
     selectedWeek ? `&week=${selectedWeek}` : ''
@@ -156,7 +117,7 @@ export function TransactionTable({
 
   return (
     <Card className="border-slate-200/80 shadow-sm overflow-hidden">
-      {/* Header with Title & Action Exports */}
+      {/* Header with Title & CSV Export Action */}
       <CardHeader className="p-4 sm:p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <CardTitle className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -168,28 +129,16 @@ export function TransactionTable({
           </p>
         </div>
 
-        {/* Action Buttons: Google Sheets Sync & Download CSV */}
+        {/* Action Button: Download CSV */}
         <div className="flex items-center gap-2 self-stretch sm:self-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportSheets}
-            disabled={isExportingSheets || transactions.length === 0}
-            className="flex-1 sm:flex-initial text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
-            title="Sinkronisasi data ke Google Spreadsheet"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>{isExportingSheets ? 'Mengekspor...' : 'Google Sheets'}</span>
-          </Button>
-
           <a
             href={csvDownloadUrl}
             download
-            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 hover:text-emerald-900 transition-colors shadow-xs"
             title="Download file CSV format standar RFC 4180"
           >
-            <Download className="w-4 h-4 text-slate-500" />
-            <span>Unduh CSV</span>
+            <Download className="w-4 h-4 text-emerald-700" />
+            <span>Unduh Rekap CSV</span>
           </a>
         </div>
       </CardHeader>

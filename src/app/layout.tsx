@@ -12,7 +12,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "KasMinggu - Aplikasi Pencatat Kas Mingguan Sederhana",
   description:
-    "Aplikasi pencatatan dan rekapan kas mingguan cepat Rp 5.000 dengan visualisasi grafik pemasukan serta ekspor instan ke Google Sheets.",
+    "Aplikasi pencatatan dan rekapan kas mingguan cepat Rp 5.000 dengan visualisasi grafik pemasukan serta ekspor instan ke format CSV.",
 };
 
 export default function RootLayout({

@@ -1,6 +1,6 @@
 # KasMinggu - Aplikasi Pencatat Kas Mingguan Sederhana
 
-> Aplikasi pencatatan dan rekapan kas mingguan cepat (Rp 5.000 per minggu) dengan visualisasi grafik pemasukan interaktif serta sinkronisasi langsung ke Google Spreadsheet / CSV fallback.
+> Aplikasi pencatatan dan rekapan kas mingguan cepat (Rp 5.000 per minggu) dengan visualisasi grafik pemasukan interaktif serta ekspor instan ke format CSV standar RFC 4180.
 
 ---
 
@@ -18,9 +18,8 @@
    - Filter segmented "Semua Minggu", "Minggu 1" s/d "Minggu 5".
    - Dropdown filter per bulan dan tahun.
    - Pencarian instan berdasarkan nama penyetor atau catatan.
-4. **Ekspor Google Spreadsheet & CSV (RFC 4180):**
-   - Integrasi langsung Google Sheets API v4 via Service Account.
-   - Tombol fallback download CSV instan berstandar UTF-8 BOM yang langsung dapat dibuka di Excel / Google Sheets.
+4. **Ekspor File CSV Standar (RFC 4180):**
+   - Tombol unduh CSV instan berstandar UTF-8 BOM yang langsung dapat dibuka dan diedit di Microsoft Excel, LibreOffice, maupun Google Sheets.
    - Format kolom baku: `No`, `Nama`, `Tanggal Bayar` (DD/MM/YYYY), `Minggu ke-`, `Jumlah Bayar`.
 5. **Master Data Anggota (`/anggota`):**
    - Pengelolaan daftar nama anggota kas, kontak, catatan, dan status aktif/nonaktif.
@@ -33,7 +32,6 @@
 - **Styling:** Tailwind CSS v4 + shadcn/ui Design System + Lucide Icons
 - **Database & ORM:** MySQL 8.0 + Prisma ORM 6.4
 - **Charts:** Recharts (SVG Responsive Container)
-- **Ekspor API:** `googleapis` (Google Service Account)
 - **Containerization:** Docker multi-stage build + `docker-compose.yml`
 
 ---
@@ -79,30 +77,9 @@
 
 ---
 
-## 📑 Konfigurasi Google Sheets API (Service Account)
-
-Untuk mengaktifkan fitur sinkronisasi 1-klik ke Google Sheets:
-1. Buka **Google Cloud Console** -> Buat Project baru atau pilih yang sudah ada.
-2. Aktifkan **Google Sheets API**.
-3. Buat **Service Account** di menu *IAM & Admin* -> Unduh file JSON kunci (Private Key).
-4. Buat dokumen Google Spreadsheet baru di Google Drive Anda.
-5. **Bagikan (Share)** Spreadsheet tersebut ke alamat email Service Account (contoh: `kas-app@project-id.iam.gserviceaccount.com`) dengan role **Editor**.
-6. Ambil Spreadsheet ID dari URL spreadsheet:
-   `https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit`
-7. Masukkan kredensial ke file `.env`:
-   ```env
-   GOOGLE_SERVICE_ACCOUNT_EMAIL="kas-app@project-id.iam.gserviceaccount.com"
-   GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-   GOOGLE_SHEET_ID="[SPREADSHEET_ID]"
-   ```
-
-*(Catatan: Jika kredensial belum diisi, bendahara tetap dapat menggunakan fitur "Unduh CSV" yang 100% kompatibel langsung diimpor ke Google Sheets)*.
-
----
-
 ## 🧪 Pengujian Otomatis
 
-Untuk menjalankan automated test suite (validasi Zod, kalkulasi nominal Rp 5.000 kelipatan, agregasi grafik 0% selisih, dan format CSV PRD):
+Untuk menjalankan automated test suite (validasi Zod, kalkulasi nominal Rp 5.000 kelipatan, agregasi grafik 0% selisih, dan format CSV):
 ```bash
 npx tsx scripts/test-runner.ts
 ```
