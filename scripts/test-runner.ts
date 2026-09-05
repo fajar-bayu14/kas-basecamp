@@ -1,9 +1,10 @@
 import { recordCashPayment, getDashboardData, deleteTransaction } from '../src/app/actions/transaction';
 import { createMember, getMembers, toggleMemberStatus, updateMember, deleteMember } from '../src/app/actions/member';
 import { generateTransactionsCsv, formatExportDate, ExportRowData } from '../src/lib/exportService';
+import { verifyCredentials } from '../src/lib/auth';
 
 async function runTests() {
-  console.log('=== MEMULAI TEST SUITE OTOMATIS KASMINGGU ===\n');
+  console.log('=== MEMULAI TEST SUITE OTOMATIS KASMINGGU DENGAN RBAC ===\n');
   let passed = 0;
   let failed = 0;
 
@@ -18,8 +19,46 @@ async function runTests() {
   }
 
   try {
-    // 1. Test CSV Generator Format (PRD Section 9)
-    console.log('--- TEST 1: Standarisasi Format Ekspor CSV (PRD Section 9) ---');
+    // 1. Test Autentikasi & Kredensial
+    console.log('--- TEST 1: Kredensial & Proteksi Hak Akses Admin ---');
+    assert(
+      verifyCredentials('admin', '@FajarBayu23404') === true,
+      'Kredensial default admin & @FajarBayu23404 terverifikasi valid'
+    );
+    assert(
+      verifyCredentials('admin', 'wrong_password') === false,
+      'Kredensial salah berhasil ditolak'
+    );
+    assert(
+      verifyCredentials('guest', '123456') === false,
+      'User non-admin berhasil ditolak'
+    );
+
+    // Test proteksi: Tanpa login admin (TEST_ADMIN = '0')
+    process.env.TEST_ADMIN = '0';
+    const unauthorizedMemberRes = await createMember({ name: 'Hacker Guest' });
+    assert(
+      unauthorizedMemberRes.success === false && Boolean(unauthorizedMemberRes.error?.includes('Akses ditolak')),
+      'createMember menolak eksekusi jika bukan admin'
+    );
+
+    const unauthorizedTxRes = await recordCashPayment({
+      memberId: 1,
+      paymentDate: '2026-09-05',
+      weeks: [1],
+      month: 9,
+      year: 2026,
+    });
+    assert(
+      unauthorizedTxRes.success === false && Boolean(unauthorizedTxRes.error?.includes('Akses ditolak')),
+      'recordCashPayment menolak eksekusi jika bukan admin'
+    );
+
+    // Aktifkan mode admin untuk eksekusi berikutnya
+    process.env.TEST_ADMIN = '1';
+
+    // 2. Test CSV Generator Format (PRD Section 9)
+    console.log('\n--- TEST 2: Standarisasi Format Ekspor CSV (PRD Section 9) ---');
     const mockExportRows: ExportRowData[] = [
       {
         no: 1,
@@ -51,8 +90,8 @@ async function runTests() {
       'Formatting tanggal ISO ke DD/MM/YYYY akurat'
     );
 
-    // 2. Test Master Anggota Actions
-    console.log('\n--- TEST 2: Master Anggota Server Actions ---');
+    // 3. Test Master Anggota Actions (Sebagai Admin)
+    console.log('\n--- TEST 3: Master Anggota Server Actions (Admin Authorized) ---');
     const createRes = await createMember({
       name: 'Anggota Test Otomatis',
       phone: '0899999999',
@@ -74,8 +113,8 @@ async function runTests() {
     });
     assert(updateRes.success === true && updateRes.member?.name === 'Anggota Test Updated', 'updateMember berhasil mengedit data');
 
-    // 3. Test Core Transaction Logic & Quick Input (Rp 5.000 & Multi-week)
-    console.log('\n--- TEST 3: Core Transaction Logic (Rp 5.000 & Kelipatan) ---');
+    // 4. Test Core Transaction Logic & Quick Input (Rp 5.000 & Multi-week)
+    console.log('\n--- TEST 4: Core Transaction Logic (Rp 5.000 & Kelipatan) ---');
     // Pembayaran 1 minggu (W1 = Rp 5.000)
     const tx1Res = await recordCashPayment({
       memberId: testMemberId,
@@ -114,10 +153,10 @@ async function runTests() {
     });
     assert(invalidRes.success === false, 'Zod validator menggagalkan input tanpa minggu dan tanggal kosong');
 
-    // 4. Test Dashboard Data Aggregation & 0% Discrepancy (G-03)
-    console.log('\n--- TEST 4: Aggregation Engine & 0% Discrepancy KPI (G-03) ---');
+    // 5. Test Dashboard Data Aggregation & 0% Discrepancy (G-03) (Guest dapat akses)
+    console.log('\n--- TEST 5: Aggregation Engine & 0% Discrepancy KPI (Akses Publik Guest) ---');
     const dashboard = await getDashboardData(9, 2026, null);
-    assert(dashboard.success === true, 'getDashboardData berhasil dieksekusi');
+    assert(dashboard.success === true, 'getDashboardData berhasil diakses bebas');
 
     const totalFromTable = dashboard.transactions.reduce((s: number, t: any) => s + t.amount, 0);
     const totalFromWeeklyChart = dashboard.weeklyData.reduce((s: number, w: any) => s + w.totalAmount, 0);

@@ -46,6 +46,7 @@ interface TransactionTableProps {
   onSelectWeek: (week: number | null) => void;
   onMonthChange: (month: number) => void;
   onYearChange: (year: number) => void;
+  isAdmin?: boolean;
 }
 
 const MONTH_NAMES = [
@@ -71,6 +72,7 @@ export function TransactionTable({
   onSelectWeek,
   onMonthChange,
   onYearChange,
+  isAdmin = false,
 }: TransactionTableProps) {
   const [searchQuery, setSearchQuery] = React.useState('');
 
@@ -242,7 +244,7 @@ export function TransactionTable({
                 <TableHead className="text-center text-xs">Minggu Ke-</TableHead>
                 <TableHead className="text-right text-xs">Jumlah Bayar</TableHead>
                 <TableHead className="hidden md:table-cell text-xs">Catatan</TableHead>
-                <TableHead className="text-right text-xs">Aksi</TableHead>
+                {isAdmin && <TableHead className="text-right text-xs">Aksi</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -268,17 +270,19 @@ export function TransactionTable({
                   <TableCell className="hidden md:table-cell text-xs text-slate-500 max-w-xs truncate">
                     {tx.notes || <span className="text-slate-300">-</span>}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(tx)}
-                      className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
-                      title="Batalkan transaksi kas ini"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
+                  {isAdmin && (
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(tx)}
+                        className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                        title="Batalkan transaksi kas ini"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { getIsAdmin } from '@/lib/auth';
 
 const memberSchema = z.object({
   name: z
@@ -43,6 +44,11 @@ export async function createMember(data: {
   notes?: string;
 }) {
   try {
+    const isAdmin = await getIsAdmin();
+    if (!isAdmin) {
+      return { success: false, error: 'Akses ditolak. Silakan login sebagai admin untuk menambah anggota.' };
+    }
+
     const validated = memberSchema.parse(data);
 
     const member = await prisma.member.create({
@@ -76,6 +82,11 @@ export async function updateMember(
   }
 ) {
   try {
+    const isAdmin = await getIsAdmin();
+    if (!isAdmin) {
+      return { success: false, error: 'Akses ditolak. Silakan login sebagai admin untuk mengubah anggota.' };
+    }
+
     const validated = memberSchema.parse({
       name: data.name,
       phone: data.phone,
@@ -106,6 +117,11 @@ export async function updateMember(
 
 export async function toggleMemberStatus(id: number) {
   try {
+    const isAdmin = await getIsAdmin();
+    if (!isAdmin) {
+      return { success: false, error: 'Akses ditolak. Silakan login sebagai admin untuk mengubah status anggota.' };
+    }
+
     const existing = await prisma.member.findUnique({ where: { id } });
     if (!existing) return { success: false, error: 'Anggota tidak ditemukan.' };
 
@@ -125,6 +141,11 @@ export async function toggleMemberStatus(id: number) {
 
 export async function deleteMember(id: number) {
   try {
+    const isAdmin = await getIsAdmin();
+    if (!isAdmin) {
+      return { success: false, error: 'Akses ditolak. Silakan login sebagai admin untuk menghapus anggota.' };
+    }
+
     await prisma.member.delete({
       where: { id },
     });

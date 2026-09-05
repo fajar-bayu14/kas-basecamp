@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { getIsAdmin } from '@/lib/auth';
 
 const recordPaymentSchema = z.object({
   memberId: z.coerce.number().int().positive('Anggota wajib dipilih'),
@@ -23,6 +24,11 @@ function safeRevalidatePath(path: string) {
 
 export async function recordCashPayment(rawInput: any) {
   try {
+    const isAdmin = await getIsAdmin();
+    if (!isAdmin) {
+      return { success: false, error: 'Akses ditolak. Silakan login sebagai admin untuk mencatat kas.' };
+    }
+
     const data = recordPaymentSchema.parse(rawInput);
     const dateObj = new Date(data.paymentDate);
 
@@ -88,6 +94,11 @@ export async function recordCashPayment(rawInput: any) {
 
 export async function deleteTransaction(id: number) {
   try {
+    const isAdmin = await getIsAdmin();
+    if (!isAdmin) {
+      return { success: false, error: 'Akses ditolak. Silakan login sebagai admin untuk membatalkan transaksi.' };
+    }
+
     await prisma.cashTransaction.delete({
       where: { id },
     });

@@ -12,6 +12,7 @@ import {
   Phone,
   ArrowLeft,
   FileText,
+  Lock,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/modal';
+import { LoginModal } from '@/components/auth/LoginModal';
 import {
   Table,
   TableBody,
@@ -49,15 +51,18 @@ type MemberWithCount = {
 
 interface MemberManagementClientProps {
   initialMembers: MemberWithCount[];
+  isAdmin?: boolean;
 }
 
 export function MemberManagementClient({
   initialMembers,
+  isAdmin = false,
 }: MemberManagementClientProps) {
   const [members, setMembers] = React.useState<MemberWithCount[]>(initialMembers);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [isAddModalOpen, setIsAddModalOpen] = React.useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = React.useState(false);
   const [editingMember, setEditingMember] = React.useState<MemberWithCount | null>(null);
 
   // Form states
@@ -90,12 +95,20 @@ export function MemberManagementClient({
 
   // Open Add Modal
   const handleOpenAdd = () => {
+    if (!isAdmin) {
+      setIsLoginModalOpen(true);
+      return;
+    }
     setFormData({ name: '', phone: '', notes: '' });
     setIsAddModalOpen(true);
   };
 
   // Open Edit Modal
   const handleOpenEdit = (member: MemberWithCount) => {
+    if (!isAdmin) {
+      setIsLoginModalOpen(true);
+      return;
+    }
     setEditingMember(member);
     setFormData({
       name: member.name,
@@ -153,6 +166,10 @@ export function MemberManagementClient({
 
   // Handle Toggle Status
   const handleToggleStatus = async (member: MemberWithCount) => {
+    if (!isAdmin) {
+      setIsLoginModalOpen(true);
+      return;
+    }
     const res = await toggleMemberStatus(member.id);
     if (res.success && res.member) {
       toast.success(
@@ -167,6 +184,10 @@ export function MemberManagementClient({
 
   // Handle Delete
   const handleDelete = async (member: MemberWithCount) => {
+    if (!isAdmin) {
+      setIsLoginModalOpen(true);
+      return;
+    }
     if (
       !confirm(
         `Yakin ingin menghapus ${member.name}? Semua riwayat transaksi kas terkait akan ikut terhapus!`
@@ -208,7 +229,7 @@ export function MemberManagementClient({
           onClick={handleOpenAdd}
           className="shadow-md shadow-emerald-600/20 flex items-center gap-2 self-start sm:self-auto"
         >
-          <UserPlus className="w-4 h-4" />
+          {isAdmin ? <UserPlus className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
           <span>Tambah Anggota</span>
         </Button>
       </div>
@@ -298,7 +319,7 @@ export function MemberManagementClient({
                   <TableHead className="hidden md:table-cell">Catatan</TableHead>
                   <TableHead className="text-center">Total Transaksi</TableHead>
                   <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
+                  {isAdmin && <TableHead className="text-right">Aksi</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -339,8 +360,8 @@ export function MemberManagementClient({
                     <TableCell className="text-center">
                       <button
                         onClick={() => handleToggleStatus(member)}
-                        className="cursor-pointer transition-opacity hover:opacity-80"
-                        title="Klik untuk mengubah status aktif/nonaktif"
+                        className={`transition-opacity ${isAdmin ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+                        title={isAdmin ? "Klik untuk mengubah status aktif/nonaktif" : "Status keanggotaan"}
                       >
                         {member.isActive ? (
                           <Badge variant="success" className="gap-1">
@@ -355,28 +376,30 @@ export function MemberManagementClient({
                         )}
                       </button>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleOpenEdit(member)}
-                          className="h-8 w-8 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50"
-                          title="Edit Anggota"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(member)}
-                          className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
-                          title="Hapus Anggota"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    {isAdmin && (
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenEdit(member)}
+                            className="h-8 w-8 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50"
+                            title="Edit Anggota"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(member)}
+                            className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                            title="Hapus Anggota"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -512,6 +535,15 @@ export function MemberManagementClient({
           </div>
         </form>
       </Modal>
+
+      {/* Login Modal for unauthorized guests */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onSuccess={() => setIsAddModalOpen(true)}
+        title="Login Diperlukan"
+        description="Silakan masuk sebagai admin untuk mengelola daftar anggota kas."
+      />
     </div>
   );
 }

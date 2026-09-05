@@ -5,8 +5,9 @@ import { KpiCards } from '@/components/dashboard/KpiCards';
 import { WeeklyCashChart } from '@/components/dashboard/WeeklyCashChart';
 import { TransactionTable } from '@/components/dashboard/TransactionTable';
 import { QuickInputModal } from '@/components/dashboard/QuickInputModal';
+import { LoginModal } from '@/components/auth/LoginModal';
 import { Button } from '@/components/ui/button';
-import { Plus, Wallet, Sparkles } from 'lucide-react';
+import { Plus, Wallet, Sparkles, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const MONTH_NAMES = [
@@ -54,11 +55,13 @@ interface DashboardClientProps {
     name: string;
     isActive: boolean;
   }[];
+  isAdmin?: boolean;
 }
 
 export function DashboardClient({
   initialData,
   members,
+  isAdmin = false,
 }: DashboardClientProps) {
   const router = useRouter();
 
@@ -73,8 +76,18 @@ export function DashboardClient({
     initialData.period.week
   );
 
-  // Quick Input Modal state
+  // Modal states
   const [isQuickInputOpen, setIsQuickInputOpen] = React.useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = React.useState(false);
+
+  // Trigger input: if admin opens quick input, else opens login modal
+  const handleTriggerInput = () => {
+    if (isAdmin) {
+      setIsQuickInputOpen(true);
+    } else {
+      setIsLoginModalOpen(true);
+    }
+  };
 
   // Month & Year handlers: update state and navigate
   const handleMonthChange = (month: number) => {
@@ -121,11 +134,15 @@ export function DashboardClient({
         </div>
 
         <Button
-          onClick={() => setIsQuickInputOpen(true)}
+          onClick={handleTriggerInput}
           size="lg"
           className="relative z-10 bg-white text-emerald-800 hover:bg-emerald-50 shadow-md font-bold text-sm sm:text-base self-start sm:self-auto rounded-2xl gap-2 border border-emerald-100"
         >
-          <Plus className="w-5 h-5 text-emerald-600" />
+          {isAdmin ? (
+            <Plus className="w-5 h-5 text-emerald-600" />
+          ) : (
+            <Lock className="w-4 h-4 text-emerald-600" />
+          )}
           <span>Input Kas Cepat</span>
         </Button>
       </div>
@@ -159,6 +176,7 @@ export function DashboardClient({
         onSelectWeek={handleSelectWeek}
         onMonthChange={handleMonthChange}
         onYearChange={handleYearChange}
+        isAdmin={isAdmin}
       />
 
       {/* 4. Quick Input Modal Dialog / Mobile Bottom Sheet */}
@@ -173,14 +191,29 @@ export function DashboardClient({
         }}
       />
 
-      {/* 5. Mobile Floating Action Button (FAB) - Touch-friendly quick entry */}
+      {/* 5. Login Modal if guest clicks input action */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onSuccess={() => {
+          setIsQuickInputOpen(true);
+        }}
+        title="Login Diperlukan"
+        description="Silakan masuk dengan akun pengelola kas untuk mencatat iuran anggota."
+      />
+
+      {/* 6. Mobile Floating Action Button (FAB) - Touch-friendly quick entry */}
       <div className="fixed right-5 bottom-6 z-40 sm:hidden">
         <button
-          onClick={() => setIsQuickInputOpen(true)}
+          onClick={handleTriggerInput}
           className="w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xl shadow-emerald-600/40 hover:bg-emerald-700 active:scale-95 transition-all cursor-pointer"
           aria-label="Input Kas Cepat"
         >
-          <Plus className="w-7 h-7" />
+          {isAdmin ? (
+            <Plus className="w-7 h-7" />
+          ) : (
+            <Lock className="w-6 h-6" />
+          )}
         </button>
       </div>
     </div>

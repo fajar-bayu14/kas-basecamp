@@ -1,5 +1,6 @@
 import { getDashboardData } from '@/app/actions/transaction';
 import { getMembers } from '@/app/actions/member';
+import { getIsAdmin } from '@/lib/auth';
 import { DashboardClient } from '@/components/dashboard/DashboardClient';
 
 export const dynamic = 'force-dynamic';
@@ -14,9 +15,10 @@ export default async function DashboardPage({
   const year = params.year ? parseInt(params.year, 10) : 2026; // Default 2026 per PRD
   const week = params.week ? parseInt(params.week, 10) : null;
 
-  const [dashboardData, members] = await Promise.all([
+  const [dashboardData, members, isAdmin] = await Promise.all([
     getDashboardData(month, year, week),
     getMembers(true),
+    getIsAdmin(),
   ]);
 
   return (
@@ -27,6 +29,7 @@ export default async function DashboardPage({
         name: m.name,
         isActive: m.isActive,
       }))}
+      isAdmin={isAdmin}
     />
   );
 }

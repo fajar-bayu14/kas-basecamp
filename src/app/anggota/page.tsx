@@ -1,4 +1,5 @@
 import { getMembers } from '@/app/actions/member';
+import { getIsAdmin } from '@/lib/auth';
 import { MemberManagementClient } from '@/components/members/MemberManagementClient';
 import { Metadata } from 'next';
 
@@ -10,7 +11,10 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function AnggotaPage() {
-  const members = await getMembers(false);
+  const [members, isAdmin] = await Promise.all([
+    getMembers(false),
+    getIsAdmin(),
+  ]);
 
-  return <MemberManagementClient initialMembers={members} />;
+  return <MemberManagementClient initialMembers={members} isAdmin={isAdmin} />;
 }
