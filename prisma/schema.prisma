@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Member {
+  id           Int               @id @default(autoincrement())
+  name         String            @db.VarChar(100)
+  phone        String?           @db.VarChar(30)
+  notes        String?           @db.Text
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  transactions CashTransaction[]
+
+  @@index([name])
+}
+
+model CashTransaction {
+  id          Int      @id @default(autoincrement())
+  memberId    Int
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  paymentDate DateTime
+  weekNumber  Int      // 1 - 5
+  month       Int      // 1 - 12
+  year        Int      // e.g. 2026
+  amount      Int      @default(5000)
+  notes       String?  @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([memberId, year, month, weekNumber], name: "member_period_week_unique")
+  @@index([year, month, weekNumber])
+  @@index([paymentDate])
+  @@index([memberId])
+}
