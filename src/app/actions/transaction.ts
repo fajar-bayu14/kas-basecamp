@@ -126,25 +126,34 @@ export async function getDashboardData(
     const activeCurrentWeek = Math.min(Math.ceil(currentDay / 7), 5);
     const targetWeekForKpi = filterWeek ? filterWeek : activeCurrentWeek;
 
-    // 1. Get all active members count
-    const activeMembersCount = await prisma.member.count({
-      where: { isActive: true },
-    });
+    // 1. Fetch active members count, all-time total cash, and monthly transactions concurrently
+    const [activeMembersCount, totalCashAggregation, monthTransactions] =
+      await Promise.all([
+        prisma.member.count({
+          where: { isActive: true },
+        }),
+        prisma.cashTransaction.aggregate({
+          _sum: {
+            amount: true,
+          },
+        }),
+        prisma.cashTransaction.findMany({
+          where: {
+            year: currentYear,
+            month: currentMonth,
+          },
+          include: {
+            member: true,
+          },
+          orderBy: [
+            { paymentDate: 'desc' },
+            { id: 'desc' },
+          ],
+        }),
+      ]);
 
-    // 2. Fetch all transactions for this month and year
-    const monthTransactions = await prisma.cashTransaction.findMany({
-      where: {
-        year: currentYear,
-        month: currentMonth,
-      },
-      include: {
-        member: true,
-      },
-      orderBy: [
-        { paymentDate: 'desc' },
-        { id: 'desc' },
-      ],
-    });
+    // Total Kas Keseluruhan (All-time)
+    const totalAllTimeAmount = totalCashAggregation._sum.amount || 0;
 
     // Total Kas Bulan Ini
     const totalMonthAmount = monthTransactions.reduce(
@@ -190,6 +199,7 @@ export async function getDashboardData(
     return {
       success: true,
       kpi: {
+        totalAllTimeAmount,
         totalMonthAmount,
         totalCurrentWeekAmount,
         targetWeekForKpi,
@@ -225,6 +235,7 @@ export async function getDashboardData(
       success: false,
       error: 'Gagal mengambil data dashboard.',
       kpi: {
+        totalAllTimeAmount: 0,
         totalMonthAmount: 0,
         totalCurrentWeekAmount: 0,
         targetWeekForKpi: 1,

@@ -28,6 +28,7 @@ const MONTH_NAMES = [
 interface DashboardClientProps {
   initialData: {
     kpi: {
+      totalAllTimeAmount: number;
       totalMonthAmount: number;
       totalCurrentWeekAmount: number;
       targetWeekForKpi: number;
@@ -149,6 +150,7 @@ export function DashboardClient({
 
       {/* 1. KPI Summary Cards */}
       <KpiCards
+        totalAllTimeAmount={initialData.kpi.totalAllTimeAmount}
         totalMonthAmount={initialData.kpi.totalMonthAmount}
         totalCurrentWeekAmount={initialData.kpi.totalCurrentWeekAmount}
         targetWeek={initialData.kpi.targetWeekForKpi}
