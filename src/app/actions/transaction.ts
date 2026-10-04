@@ -116,10 +116,10 @@ export async function getDashboardData(
   filterYear?: number,
   filterWeek?: number | null
 ) {
+  const now = new Date(); // dideklarasikan di luar try/catch agar tersedia di blok catch
   try {
-    const now = new Date();
-    const currentYear = filterYear || 2026; // Default PRD context
-    const currentMonth = filterMonth || 9; // Default September
+    const currentYear = filterYear || now.getFullYear();
+    const currentMonth = filterMonth || (now.getMonth() + 1);
 
     // Determine current calendar week (1-5) based on day of month
     const currentDay = now.getDate();
@@ -235,8 +235,8 @@ export async function getDashboardData(
       weeklyData: [],
       transactions: [],
       period: {
-        month: 9,
-        year: 2026,
+        month: filterMonth || (now.getMonth() + 1),
+        year: filterYear || now.getFullYear(),
         week: null,
       },
     };

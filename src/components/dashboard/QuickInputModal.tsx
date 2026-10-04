@@ -4,11 +4,15 @@ import * as React from 'react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 import { formatCurrency } from '@/lib/utils';
 import { recordCashPayment } from '@/app/actions/transaction';
 import { toast } from 'sonner';
-import { Check, Calendar, User, Coins, CheckCircle2 } from 'lucide-react';
+import { Check, Calendar, User, Coins, CheckCircle2, AlertTriangle, Search } from 'lucide-react';
+
+const MONTH_NAMES = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+];
 
 interface MemberOption {
   id: number;
@@ -47,6 +51,54 @@ export function QuickInputModal({
   const [notes, setNotes] = React.useState<string>('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+  // State periode lokal — bisa dioverride admin untuk input retroaktif
+  const [localMonth, setLocalMonth] = React.useState<number>(currentMonth);
+  const [localYear, setLocalYear] = React.useState<number>(currentYear);
+
+  // State combobox pencarian anggota
+  const [memberSearch, setMemberSearch] = React.useState<string>('');
+  const [isMemberDropdownOpen, setIsMemberDropdownOpen] = React.useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Filtered list berdasarkan teks pencarian (case-insensitive)
+  const filteredMembers = React.useMemo(() => {
+    if (!memberSearch.trim()) return activeMembers;
+    const q = memberSearch.toLowerCase();
+    return activeMembers.filter((m) => m.name.toLowerCase().includes(q));
+  }, [activeMembers, memberSearch]);
+
+  // Nama anggota terpilih — dipakai untuk restore input saat klik luar dropdown
+  const selectedMemberName = React.useMemo(
+    () => activeMembers.find((m) => String(m.id) === memberId)?.name ?? '',
+    [activeMembers, memberId]
+  );
+
+  // Handler ganti periode: reset week ke W1 karena auto-detect minggu
+  // berjalan hanya relevan untuk bulan aktif
+  const handlePeriodChange = (month: number, year: number) => {
+    setLocalMonth(month);
+    setLocalYear(year);
+    setSelectedWeeks([1]);
+  };
+
+  // Handler combobox anggota
+  const handleSelectMember = (id: number, name: string) => {
+    setMemberId(String(id));
+    setMemberSearch(name);       // tampilkan nama di input setelah dipilih
+    setIsMemberDropdownOpen(false);
+  };
+
+  const handleMemberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMemberSearch(e.target.value);
+    setMemberId('');             // reset pilihan saat user mulai mengetik lagi
+    setIsMemberDropdownOpen(true);
+  };
+
+  const handleMemberInputFocus = () => {
+    setMemberSearch('');         // kosongkan input saat fokus agar filter fresh
+    setIsMemberDropdownOpen(true);
+  };
+
   // Auto calculated nominal
   const totalAmount = selectedWeeks.length * 5000;
 
@@ -70,13 +122,32 @@ export function QuickInputModal({
       if (firstActive) {
         setMemberId((prev) => (prev ? prev : String(firstActive.id)));
       }
-      // Pick current calendar week default
+      // Sync periode lokal ke bulan/tahun dashboard yang aktif
+      setLocalMonth(currentMonth);
+      setLocalYear(currentYear);
+      // Pick current calendar week default (hanya relevan jika bulan sama dengan sekarang)
       const day = new Date().getDate();
       const currentWeek = Math.min(Math.ceil(day / 7), 5);
       setSelectedWeeks([currentWeek]);
       setNotes('');
+      // Reset combobox pencarian
+      setMemberSearch('');
+      setIsMemberDropdownOpen(false);
     }
-  }, [isOpen]);
+  }, [isOpen, currentMonth, currentYear]);
+
+  // Click-outside: tutup dropdown dan restore nama anggota terpilih
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsMemberDropdownOpen(false);
+        // Jika ada anggota terpilih, kembalikan namanya ke input
+        if (memberId) setMemberSearch(selectedMemberName);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [memberId, selectedMemberName]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,8 +165,8 @@ export function QuickInputModal({
       memberId: Number(memberId),
       paymentDate,
       weeks: selectedWeeks,
-      month: currentMonth,
-      year: currentYear,
+      month: localMonth,
+      year: localYear,
       notes: notes.trim() || undefined,
     });
     setIsSubmitting(false);
@@ -122,27 +193,99 @@ export function QuickInputModal({
       className="sm:max-w-md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* 0. Pilih Periode Input */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold uppercase text-slate-600 flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+            Periode Kas <span className="text-red-500">*</span>
+          </label>
+
+          <div className="flex gap-2">
+            {/* Dropdown Bulan */}
+            <select
+              value={localMonth}
+              onChange={(e) => handlePeriodChange(Number(e.target.value), localYear)}
+              className="flex-1 h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              {MONTH_NAMES.map((name, idx) => (
+                <option key={idx + 1} value={idx + 1}>{name}</option>
+              ))}
+            </select>
+
+            {/* Dropdown Tahun */}
+            <select
+              value={localYear}
+              onChange={(e) => handlePeriodChange(localMonth, Number(e.target.value))}
+              className="w-24 h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              {[2025, 2026, 2027].map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Peringatan jika input retroaktif (beda dari bulan dashboard) */}
+          {(localMonth !== currentMonth || localYear !== currentYear) && (
+            <div className="flex items-center gap-1.5 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 font-medium">
+              <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" />
+              Input retroaktif: data akan masuk ke{' '}
+              <strong>{MONTH_NAMES[localMonth - 1]} {localYear}</strong>
+            </div>
+          )}
+        </div>
+
         {/* 1. Pilih Anggota */}
         <div>
           <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5 flex items-center gap-1.5">
             <User className="w-3.5 h-3.5 text-emerald-600" />
             Nama Anggota <span className="text-red-500">*</span>
           </label>
-          <Select
-            value={memberId}
-            onChange={(e) => setMemberId(e.target.value)}
-            required
-            className="font-medium text-slate-900"
-          >
-            <option value="" disabled>
-              -- Pilih Anggota Kas --
-            </option>
-            {activeMembers.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </Select>
+
+          {/* Custom combobox dengan pencarian real-time */}
+          <div ref={dropdownRef} className="relative">
+            {/* Input pencarian */}
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Cari nama anggota..."
+                value={memberSearch}
+                onChange={handleMemberInputChange}
+                onFocus={handleMemberInputFocus}
+                autoComplete="off"
+                className="flex h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3.5 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 transition-all"
+              />
+            </div>
+
+            {/* Dropdown list — tampil saat isMemberDropdownOpen */}
+            {isMemberDropdownOpen && (
+              <div className="absolute z-10 mt-1 w-full rounded-xl border border-slate-200 bg-white shadow-lg max-h-48 overflow-y-auto">
+                {filteredMembers.length === 0 ? (
+                  <div className="px-3.5 py-3 text-sm text-slate-400 text-center">
+                    Anggota tidak ditemukan
+                  </div>
+                ) : (
+                  filteredMembers.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => handleSelectMember(m.id, m.name)}
+                      className={`w-full text-left px-3.5 py-2.5 text-sm transition-colors flex items-center justify-between gap-2 first:rounded-t-xl last:rounded-b-xl ${
+                        String(m.id) === memberId
+                          ? 'bg-emerald-50 text-emerald-800 font-semibold'
+                          : 'text-slate-800 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>{m.name}</span>
+                      {String(m.id) === memberId && (
+                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 2. Pilihan Minggu Pembayaran (Multi-select chip) */}
