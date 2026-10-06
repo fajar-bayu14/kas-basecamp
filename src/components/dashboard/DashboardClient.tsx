@@ -5,9 +5,11 @@ import { KpiCards } from '@/components/dashboard/KpiCards';
 import { WeeklyCashChart } from '@/components/dashboard/WeeklyCashChart';
 import { TransactionTable } from '@/components/dashboard/TransactionTable';
 import { QuickInputModal } from '@/components/dashboard/QuickInputModal';
+import { ExpenseInputModal } from '@/components/dashboard/ExpenseInputModal';
+import { ExpenseTable } from '@/components/dashboard/ExpenseTable';
 import { LoginModal } from '@/components/auth/LoginModal';
 import { Button } from '@/components/ui/button';
-import { Plus, Wallet, Sparkles, Lock } from 'lucide-react';
+import { Plus, Wallet, Sparkles, Lock, TrendingDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const MONTH_NAMES = [
@@ -29,33 +31,25 @@ interface DashboardClientProps {
   initialData: {
     kpi: {
       totalAllTimeAmount: number;
+      totalAllTimeExpense?: number;
+      netBalanceAllTime?: number;
       totalMonthAmount: number;
+      totalMonthExpense?: number;
+      netBalanceMonth?: number;
+      monthTxCount: number;
+      monthExpenseCount?: number;
       totalCurrentWeekAmount: number;
       targetWeekForKpi: number;
       uniqueMembersPaidThisWeek: number;
       activeMembersCount: number;
       paymentRatio: number;
     };
-    weeklyData: {
-      weekNumber: number;
-      label: string;
-      shortLabel: string;
-      totalAmount: number;
-      txCount: number;
-      targetAmount: number;
-    }[];
+    weeklyData: any[];
     transactions: any[];
-    period: {
-      month: number;
-      year: number;
-      week: number | null;
-    };
+    expenses?: any[];
+    period: { month: number; year: number; week: number | null };
   };
-  members: {
-    id: number;
-    name: string;
-    isActive: boolean;
-  }[];
+  members: { id: number; name: string; isActive: boolean }[];
   isAdmin?: boolean;
 }
 
@@ -77,17 +71,17 @@ export function DashboardClient({
     initialData.period.week
   );
 
-  // Modal states
   const [isQuickInputOpen, setIsQuickInputOpen] = React.useState(false);
+  const [isExpenseOpen, setIsExpenseOpen] = React.useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = React.useState(false);
-
-  // Trigger input: if admin opens quick input, else opens login modal
+  const [pendingExpense, setPendingExpense] = React.useState(false);
   const handleTriggerInput = () => {
-    if (isAdmin) {
-      setIsQuickInputOpen(true);
-    } else {
-      setIsLoginModalOpen(true);
-    }
+    if (isAdmin) setIsQuickInputOpen(true);
+    else { setPendingExpense(false); setIsLoginModalOpen(true); }
+  };
+  const handleTriggerExpense = () => {
+    if (isAdmin) setIsExpenseOpen(true);
+    else { setPendingExpense(true); setIsLoginModalOpen(true); }
   };
 
   // Month & Year handlers: update state and navigate
@@ -134,30 +128,32 @@ export function DashboardClient({
           </p>
         </div>
 
-        <Button
-          onClick={handleTriggerInput}
-          size="lg"
-          className="relative z-10 bg-white text-emerald-800 hover:bg-emerald-50 shadow-md font-bold text-sm sm:text-base self-start sm:self-auto rounded-2xl gap-2 border border-emerald-100"
-        >
-          {isAdmin ? (
-            <Plus className="w-5 h-5 text-emerald-600" />
-          ) : (
-            <Lock className="w-4 h-4 text-emerald-600" />
-          )}
-          <span>Input Kas Cepat</span>
-        </Button>
+        <div className="relative z-10 flex gap-2 self-start sm:self-auto flex-wrap">
+          <Button onClick={handleTriggerInput} size="lg" className="bg-white text-emerald-800 hover:bg-emerald-50 shadow-md font-bold text-sm sm:text-base rounded-2xl gap-2 border border-emerald-100">
+            {isAdmin ? <Plus className="w-5 h-5 text-emerald-600" /> : <Lock className="w-4 h-4 text-emerald-600" />}<span>Input Kas</span>
+          </Button>
+          <Button onClick={handleTriggerExpense} size="lg" variant="outline" className="bg-white/10 text-white border-white/30 hover:bg-white hover:text-red-700 font-bold text-sm sm:text-base rounded-2xl gap-2 backdrop-blur">
+            {isAdmin ? <TrendingDown className="w-5 h-5" /> : <Lock className="w-4 h-4" />}<span>Pengeluaran</span>
+          </Button>
+        </div>
       </div>
 
-      {/* 1. KPI Summary Cards */}
       <KpiCards
         totalAllTimeAmount={initialData.kpi.totalAllTimeAmount}
+        totalAllTimeExpense={initialData.kpi.totalAllTimeExpense}
+        netBalanceAllTime={initialData.kpi.netBalanceAllTime}
         totalMonthAmount={initialData.kpi.totalMonthAmount}
+        totalMonthExpense={initialData.kpi.totalMonthExpense}
+        netBalanceMonth={initialData.kpi.netBalanceMonth}
+        monthTxCount={initialData.kpi.monthTxCount}
+        monthExpenseCount={initialData.kpi.monthExpenseCount}
         totalCurrentWeekAmount={initialData.kpi.totalCurrentWeekAmount}
         targetWeek={initialData.kpi.targetWeekForKpi}
         uniqueMembersPaidThisWeek={initialData.kpi.uniqueMembersPaidThisWeek}
         activeMembersCount={initialData.kpi.activeMembersCount}
         paymentRatio={initialData.kpi.paymentRatio}
         monthName={monthName}
+        year={currentYear}
       />
 
       {/* 2. Interactive Weekly Chart (graphify) */}
@@ -169,7 +165,6 @@ export function DashboardClient({
         onSelectWeek={handleSelectWeek}
       />
 
-      {/* 3. Transaction Table & Filter Module */}
       <TransactionTable
         transactions={initialData.transactions}
         currentMonth={currentMonth}
@@ -180,42 +175,24 @@ export function DashboardClient({
         onYearChange={handleYearChange}
         isAdmin={isAdmin}
       />
+      <ExpenseTable expenses={initialData.expenses || []} currentMonth={currentMonth} currentYear={currentYear} isAdmin={isAdmin} />
 
-      {/* 4. Quick Input Modal Dialog / Mobile Bottom Sheet */}
-      <QuickInputModal
-        isOpen={isQuickInputOpen}
-        onClose={() => setIsQuickInputOpen(false)}
-        members={members}
-        currentMonth={currentMonth}
-        currentYear={currentYear}
-        onSuccess={() => {
-          router.refresh();
-        }}
-      />
-
-      {/* 5. Login Modal if guest clicks input action */}
+      <QuickInputModal isOpen={isQuickInputOpen} onClose={() => setIsQuickInputOpen(false)} members={members} currentMonth={currentMonth} currentYear={currentYear} onSuccess={() => router.refresh()} />
+      <ExpenseInputModal isOpen={isExpenseOpen} onClose={() => setIsExpenseOpen(false)} onSuccess={() => router.refresh()} />
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
-        onSuccess={() => {
-          setIsQuickInputOpen(true);
-        }}
+        onSuccess={() => { if (pendingExpense) { setPendingExpense(false); setIsExpenseOpen(true); } else setIsQuickInputOpen(true); }}
         title="Login Diperlukan"
-        description="Silakan masuk dengan akun pengelola kas untuk mencatat iuran anggota."
+        description="Silakan masuk dengan akun pengelola kas."
       />
 
-      {/* 6. Mobile Floating Action Button (FAB) - Touch-friendly quick entry */}
-      <div className="fixed right-5 bottom-6 z-40 sm:hidden">
-        <button
-          onClick={handleTriggerInput}
-          className="w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xl shadow-emerald-600/40 hover:bg-emerald-700 active:scale-95 transition-all cursor-pointer"
-          aria-label="Input Kas Cepat"
-        >
-          {isAdmin ? (
-            <Plus className="w-7 h-7" />
-          ) : (
-            <Lock className="w-6 h-6" />
-          )}
+      <div className="fixed right-5 bottom-6 z-40 sm:hidden flex flex-col gap-3">
+        <button onClick={handleTriggerInput} className="w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xl shadow-emerald-600/40 hover:bg-emerald-700 active:scale-95 transition-all" aria-label="Input Kas">
+          {isAdmin ? <Plus className="w-7 h-7" /> : <Lock className="w-6 h-6" />}
+        </button>
+        <button onClick={handleTriggerExpense} className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center shadow-xl shadow-red-600/40 hover:bg-red-700 active:scale-95 transition-all" aria-label="Pengeluaran">
+          {isAdmin ? <TrendingDown className="w-6 h-6" /> : <Lock className="w-6 h-6" />}
         </button>
       </div>
     </div>

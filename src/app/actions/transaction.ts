@@ -126,40 +126,26 @@ export async function getDashboardData(
     const activeCurrentWeek = Math.min(Math.ceil(currentDay / 7), 5);
     const targetWeekForKpi = filterWeek ? filterWeek : activeCurrentWeek;
 
-    // 1. Fetch active members count, all-time total cash, and monthly transactions concurrently
-    const [activeMembersCount, totalCashAggregation, monthTransactions] =
+    const [activeMembersCount, totalCashAggregation, totalExpenseAgg, monthTransactions, monthExpenses] =
       await Promise.all([
-        prisma.member.count({
-          where: { isActive: true },
-        }),
-        prisma.cashTransaction.aggregate({
-          _sum: {
-            amount: true,
-          },
-        }),
+        prisma.member.count({ where: { isActive: true } }),
+        prisma.cashTransaction.aggregate({ _sum: { amount: true } }),
+        prisma.cashExpense.aggregate({ _sum: { amount: true } }),
         prisma.cashTransaction.findMany({
-          where: {
-            year: currentYear,
-            month: currentMonth,
-          },
-          include: {
-            member: true,
-          },
-          orderBy: [
-            { paymentDate: 'desc' },
-            { id: 'desc' },
-          ],
+          where: { year: currentYear, month: currentMonth },
+          include: { member: true },
+          orderBy: [{ paymentDate: 'desc' }, { id: 'desc' }],
+        }),
+        prisma.cashExpense.findMany({
+          where: { year: currentYear, month: currentMonth },
+          orderBy: [{ expenseDate: 'desc' }, { id: 'desc' }],
         }),
       ]);
 
-    // Total Kas Keseluruhan (All-time)
     const totalAllTimeAmount = totalCashAggregation._sum.amount || 0;
-
-    // Total Kas Bulan Ini
-    const totalMonthAmount = monthTransactions.reduce(
-      (sum, t) => sum + t.amount,
-      0
-    );
+    const totalAllTimeExpense = totalExpenseAgg._sum.amount || 0;
+    const totalMonthAmount = monthTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalMonthExpense = monthExpenses.reduce((sum: number, e: any) => sum + e.amount, 0);
 
     // Filtered by week for current week KPI
     const currentWeekTransactions = monthTransactions.filter(
@@ -200,34 +186,29 @@ export async function getDashboardData(
       success: true,
       kpi: {
         totalAllTimeAmount,
+        totalAllTimeExpense,
+        netBalanceAllTime: totalAllTimeAmount - totalAllTimeExpense,
         totalMonthAmount,
+        totalMonthExpense,
+        netBalanceMonth: totalMonthAmount - totalMonthExpense,
+        monthTxCount: monthTransactions.length,
+        monthExpenseCount: monthExpenses.length,
         totalCurrentWeekAmount,
         targetWeekForKpi,
         uniqueMembersPaidThisWeek,
         activeMembersCount,
-        paymentRatio:
-          activeMembersCount > 0
-            ? Math.round((uniqueMembersPaidThisWeek / activeMembersCount) * 100)
-            : 0,
+        paymentRatio: activeMembersCount > 0 ? Math.round((uniqueMembersPaidThisWeek / activeMembersCount) * 100) : 0,
       },
       weeklyData,
       transactions: displayTransactions.map((tx, index) => ({
-        no: index + 1,
-        id: tx.id,
-        memberId: tx.memberId,
-        name: tx.member.name,
-        paymentDate: tx.paymentDate.toISOString(),
-        weekNumber: tx.weekNumber,
-        month: tx.month,
-        year: tx.year,
-        amount: tx.amount,
-        notes: tx.notes,
+        no: index + 1, id: tx.id, memberId: tx.memberId, name: tx.member.name,
+        paymentDate: tx.paymentDate.toISOString(), weekNumber: tx.weekNumber, month: tx.month, year: tx.year, amount: tx.amount, notes: tx.notes,
       })),
-      period: {
-        month: currentMonth,
-        year: currentYear,
-        week: filterWeek || null,
-      },
+      expenses: monthExpenses.map((e: any, i: number) => ({
+        no: i + 1, id: e.id, amount: e.amount, category: e.category, description: e.description,
+        expenseDate: e.expenseDate.toISOString(), month: e.month, year: e.year, notes: e.notes,
+      })),
+      period: { month: currentMonth, year: currentYear, week: filterWeek || null },
     };
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
@@ -235,21 +216,14 @@ export async function getDashboardData(
       success: false,
       error: 'Gagal mengambil data dashboard.',
       kpi: {
-        totalAllTimeAmount: 0,
-        totalMonthAmount: 0,
-        totalCurrentWeekAmount: 0,
-        targetWeekForKpi: 1,
-        uniqueMembersPaidThisWeek: 0,
-        activeMembersCount: 0,
-        paymentRatio: 0,
+        totalAllTimeAmount: 0, totalAllTimeExpense: 0, netBalanceAllTime: 0,
+        totalMonthAmount: 0, totalMonthExpense: 0, netBalanceMonth: 0,
+        monthTxCount: 0, monthExpenseCount: 0,
+        totalCurrentWeekAmount: 0, targetWeekForKpi: 1,
+        uniqueMembersPaidThisWeek: 0, activeMembersCount: 0, paymentRatio: 0,
       },
-      weeklyData: [],
-      transactions: [],
-      period: {
-        month: filterMonth || (now.getMonth() + 1),
-        year: filterYear || now.getFullYear(),
-        week: null,
-      },
+      weeklyData: [], transactions: [], expenses: [],
+      period: { month: filterMonth || (now.getMonth() + 1), year: filterYear || now.getFullYear(), week: null },
     };
   }
 }

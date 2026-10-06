@@ -34,6 +34,17 @@ export function generateTransactionsCsv(rows: ExportRowData[]): string {
     return [row.no, escapedName, formattedDate, weekStr, row.amount].join(',');
   });
 
-  // Include UTF-8 BOM for Microsoft Excel compatibility
+  return '\uFEFF' + [headers.join(','), ...csvRows].join('\r\n');
+}
+
+export interface ExpenseExportRow { no: number; description: string; category: string; expenseDate: string; amount: number; }
+
+export function generateExpenseCsv(rows: ExpenseExportRow[]): string {
+  const headers = ['No', 'Deskripsi', 'Kategori', 'Tanggal', 'Jumlah'];
+  const csvRows = rows.map((r) => {
+    const desc = `"${r.description.replace(/"/g, '""')}"`;
+    const cat = `"${r.category.replace(/"/g, '""')}"`;
+    return [r.no, desc, cat, formatExportDate(r.expenseDate), r.amount].join(',');
+  });
   return '\uFEFF' + [headers.join(','), ...csvRows].join('\r\n');
 }

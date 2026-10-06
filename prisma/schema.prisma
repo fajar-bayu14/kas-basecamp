@@ -38,3 +38,20 @@ model CashTransaction {
   @@index([paymentDate])
   @@index([memberId])
 }
+
+model CashExpense {
+  id          Int      @id @default(autoincrement())
+  amount      Int
+  category    String   @db.VarChar(50)
+  description String   @db.VarChar(255)
+  expenseDate DateTime
+  month       Int
+  year        Int
+  notes       String?  @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([year, month])
+  @@index([expenseDate])
+  @@index([category])
+}
