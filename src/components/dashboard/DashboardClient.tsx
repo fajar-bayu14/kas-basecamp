@@ -9,8 +9,9 @@ import { ExpenseInputModal } from '@/components/dashboard/ExpenseInputModal';
 import { ExpenseTable } from '@/components/dashboard/ExpenseTable';
 import { LoginModal } from '@/components/auth/LoginModal';
 import { Button } from '@/components/ui/button';
-import { Plus, Lock, TrendingDown } from 'lucide-react';
+import { Plus, Lock, TrendingDown, QrCode } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { GuestQrModal } from '@/components/dashboard/GuestQrModal';
 
 const MONTH_NAMES = [
   'Januari',
@@ -74,6 +75,7 @@ export function DashboardClient({
   const [isExpenseOpen, setIsExpenseOpen] = React.useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = React.useState(false);
   const [pendingExpense, setPendingExpense] = React.useState(false);
+  const [isQrOpen, setIsQrOpen] = React.useState(false);
   const handleTriggerInput = () => {
     if (isAdmin) setIsQuickInputOpen(true);
     else { setPendingExpense(false); setIsLoginModalOpen(true); }
@@ -119,12 +121,26 @@ export function DashboardClient({
           </p>
         </div>
         <div className="flex gap-2 self-start sm:self-auto">
-          <Button onClick={handleTriggerInput} className="gap-2">
-            {isAdmin ? <Plus className="h-4 w-4" /> : <Lock className="h-4 w-4" />}<span>Input Kas</span>
-          </Button>
-          <Button onClick={handleTriggerExpense} variant="outline" className="gap-2">
-            {isAdmin ? <TrendingDown className="h-4 w-4" /> : <Lock className="h-4 w-4" />}<span>Pengeluaran</span>
-          </Button>
+          {isAdmin ? (
+            <>
+              <Button onClick={handleTriggerInput} className="gap-2">
+                <Plus className="h-4 w-4" />
+                <span>Input Kas</span>
+              </Button>
+              <Button onClick={handleTriggerExpense} variant="outline" className="gap-2">
+                <TrendingDown className="h-4 w-4" />
+                <span>Pengeluaran</span>
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={() => setIsQrOpen(true)}
+              className="gap-2"
+            >
+              <QrCode className="h-4 w-4" />
+              <span>Bayar via QR</span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -175,15 +191,26 @@ export function DashboardClient({
         title="Login Diperlukan"
         description="Silakan masuk dengan akun pengelola kas."
       />
+      <GuestQrModal isOpen={isQrOpen} onClose={() => setIsQrOpen(false)} />
 
-      <div className="fixed bottom-6 right-5 z-40 flex flex-col gap-2 sm:hidden">
-        <button onClick={handleTriggerInput} className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Input Kas">
-          {isAdmin ? <Plus className="h-5 w-5" /> : <Lock className="h-4 w-4" />}
+      {isAdmin ? (
+        <div className="fixed bottom-6 right-5 z-40 flex flex-col gap-2 sm:hidden">
+          <button onClick={handleTriggerInput} className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer" aria-label="Input Kas">
+            <Plus className="h-5 w-5" />
+          </button>
+          <button onClick={handleTriggerExpense} className="flex h-12 w-12 items-center justify-center rounded-full border bg-card text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer" aria-label="Pengeluaran">
+            <TrendingDown className="h-5 w-5" />
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => setIsQrOpen(true)}
+          className="fixed bottom-6 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer sm:hidden"
+          aria-label="Bayar kas via QR"
+        >
+          <QrCode className="h-5 w-5" />
         </button>
-        <button onClick={handleTriggerExpense} className="flex h-12 w-12 items-center justify-center rounded-full border bg-card text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Pengeluaran">
-          {isAdmin ? <TrendingDown className="h-5 w-5" /> : <Lock className="h-4 w-4" />}
-        </button>
-      </div>
+      )}
     </div>
   );
 }
