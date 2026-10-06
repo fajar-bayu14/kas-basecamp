@@ -13,7 +13,6 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
-import { BarChart3, TrendingUp } from 'lucide-react';
 
 interface WeeklyDataItem {
   weekNumber: number;
@@ -39,7 +38,6 @@ export function WeeklyCashChart({
   selectedWeek,
   onSelectWeek,
 }: WeeklyCashChartProps) {
-  // Custom Tooltip component
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const item = payload[0].payload as WeeklyDataItem;
@@ -47,38 +45,28 @@ export function WeeklyCashChart({
         item.targetAmount > 0
           ? Math.round((item.totalAmount / item.targetAmount) * 100)
           : 0;
-
       return (
-        <div className="bg-white/95 backdrop-blur-md p-3.5 rounded-xl shadow-xl border border-slate-200 text-xs space-y-1.5 min-w-[170px] pointer-events-none">
-          <div className="font-bold text-slate-900 border-b border-slate-100 pb-1 flex items-center justify-between">
+        <div className="min-w-[160px] space-y-1.5 rounded-md border bg-card p-3 text-xs">
+          <div className="flex items-center justify-between border-b pb-1 font-medium text-card-foreground">
             <span>{item.label}</span>
-            <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-mono font-bold">
-              {item.shortLabel}
-            </span>
+            <span className="rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">{item.shortLabel}</span>
           </div>
-          <div className="flex items-center justify-between text-slate-600">
-            <span>Total Terkumpul:</span>
-            <span className="font-black text-emerald-700 font-mono">
-              {formatCurrency(item.totalAmount)}
-            </span>
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span>Terkumpul</span>
+            <span className="font-semibold text-card-foreground">{formatCurrency(item.totalAmount)}</span>
           </div>
-          <div className="flex items-center justify-between text-slate-500">
-            <span>Anggota Bayar:</span>
-            <span className="font-semibold text-slate-700 font-mono">
-              {item.txCount} Transaksi
-            </span>
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span>Transaksi</span>
+            <span className="font-medium text-card-foreground">{item.txCount}</span>
           </div>
           {item.targetAmount > 0 && (
             <div className="pt-1">
-              <div className="flex justify-between text-[10px] text-slate-400 mb-0.5">
-                <span>Target ({formatCurrency(item.targetAmount)})</span>
+              <div className="mb-1 flex justify-between text-[11px] text-muted-foreground">
+                <span>{formatCurrency(item.targetAmount)}</span>
                 <span>{percentage}%</span>
               </div>
-              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-emerald-500 h-full rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min(percentage, 100)}%` }}
-                />
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${Math.min(percentage, 100)}%` }} />
               </div>
             </div>
           )}
@@ -91,25 +79,20 @@ export function WeeklyCashChart({
   const totalSum = data.reduce((acc, curr) => acc + curr.totalAmount, 0);
 
   return (
-    <Card className="border-slate-200/80 shadow-sm overflow-hidden">
-      <CardHeader className="p-4 sm:p-6 pb-2 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <Card>
+      <CardHeader className="flex flex-col gap-2 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <CardTitle className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-emerald-600" />
-            Grafik Pemasukan Kas Mingguan
-          </CardTitle>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Periode: {monthName} {year} • Klik batang grafik untuk filter per minggu
+          <CardTitle className="text-sm font-semibold text-card-foreground">Pemasukan mingguan</CardTitle>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {monthName} {year} · Klik batang untuk filter
           </p>
         </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto bg-emerald-50 text-emerald-800 px-3 py-1.5 rounded-xl text-xs font-semibold">
-          <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Akumulasi: {formatCurrency(totalSum)}</span>
+        <div className="self-start rounded-md border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground sm:self-auto">
+          Akumulasi: {formatCurrency(totalSum)}
         </div>
       </CardHeader>
-
-      <CardContent className="p-4 sm:p-6 pt-6">
-        <div className="h-64 sm:h-72 w-full">
+      <CardContent className="p-4 pt-6">
+        <div className="h-64 w-full sm:h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}
@@ -121,41 +104,19 @@ export function WeeklyCashChart({
                 }
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis
-                dataKey="label"
-                tickLine={false}
-                axisLine={{ stroke: '#e2e8f0' }}
-                tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={{ stroke: '#e2e8f0' }}
-                tick={{ fill: '#64748b', fontSize: 11 }}
-                tickFormatter={(value) =>
-                  value >= 1000 ? `${value / 1000}k` : `${value}`
-                }
-              />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
-              <Bar
-                dataKey="totalAmount"
-                radius={[8, 8, 0, 0]}
-                className="cursor-pointer transition-all duration-200"
-              >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.4} />
+              <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: 'var(--border)' }} tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }} />
+              <YAxis tickLine={false} axisLine={{ stroke: 'var(--border)' }} tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} tickFormatter={(value) => value >= 1000 ? `${value / 1000}k` : `${value}`} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--muted)', opacity: 0.5 }} />
+              <Bar dataKey="totalAmount" radius={[4, 4, 0, 0]} className="cursor-pointer">
                 {data.map((entry) => {
                   const isSelected = selectedWeek === entry.weekNumber;
-                  const isDimmed = selectedWeek && !isSelected;
+                  const isDimmed = selectedWeek !== null && !isSelected;
                   return (
                     <Cell
                       key={`cell-${entry.weekNumber}`}
-                      fill={
-                        isSelected
-                          ? '#047857' // Deep Emerald
-                          : isDimmed
-                          ? '#a7f3d0' // Light faded emerald
-                          : '#059669' // Default vibrant emerald
-                      }
-                      opacity={isDimmed ? 0.45 : 1}
+                      fill={isSelected ? 'var(--accent)' : isDimmed ? 'var(--muted)' : 'var(--muted-foreground)'}
+                      opacity={isSelected ? 1 : isDimmed ? 0.35 : 0.85}
                     />
                   );
                 })}
@@ -163,17 +124,11 @@ export function WeeklyCashChart({
             </BarChart>
           </ResponsiveContainer>
         </div>
-
-        {selectedWeek && onSelectWeek && (
-          <div className="mt-3 flex items-center justify-between text-xs bg-emerald-50/60 border border-emerald-200/60 p-2 px-3 rounded-xl">
-            <span className="text-emerald-800 font-medium">
-              Filter aktif: <strong>Minggu {selectedWeek}</strong>
-            </span>
-            <button
-              onClick={() => onSelectWeek(null)}
-              className="text-emerald-700 hover:text-emerald-900 underline font-semibold cursor-pointer"
-            >
-              Tampilkan Semua Minggu
+        {selectedWeek !== null && onSelectWeek && (
+          <div className="mt-3 flex items-center justify-between rounded-md border bg-muted px-3 py-2 text-xs">
+            <span className="font-medium text-muted-foreground">Filter: Minggu {selectedWeek}</span>
+            <button onClick={() => onSelectWeek(null)} className="font-medium text-foreground underline underline-offset-4 hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              Tampilkan semua
             </button>
           </div>
         )}

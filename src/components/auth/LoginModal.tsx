@@ -29,7 +29,6 @@ export function LoginModal({
   const [password, setPassword] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  // Reset form when modal opens
   React.useEffect(() => {
     if (isOpen) {
       setUsername('');
@@ -71,8 +70,7 @@ export function LoginModal({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5 flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-emerald-600" />
+          <label className="block text-xs font-medium text-muted-foreground mb-1.5">
             Username
           </label>
           <Input
@@ -87,8 +85,7 @@ export function LoginModal({
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5 flex items-center gap-1.5">
-            <KeyRound className="w-3.5 h-3.5 text-emerald-600" />
+          <label className="block text-xs font-medium text-muted-foreground mb-1.5">
             Password
           </label>
           <Input
@@ -101,7 +98,7 @@ export function LoginModal({
           />
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+        <div className="flex items-center justify-end gap-2 pt-3 border-t">
           <Button
             type="button"
             variant="outline"
@@ -113,7 +110,7 @@ export function LoginModal({
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 sm:flex-initial shadow-md shadow-emerald-600/20"
+            className="flex-1 sm:flex-initial"
           >
             {isSubmitting ? (
               'Memverifikasi...'

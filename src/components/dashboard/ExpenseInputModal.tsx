@@ -7,7 +7,6 @@ import { formatCurrency } from '@/lib/utils';
 import { recordExpense } from '@/app/actions/expense';
 const expenseCategories = ['Operasional', 'Konsumsi', 'Peralatan', 'Transport', 'Lainnya'] as const;
 import { toast } from 'sonner';
-import { Wallet, Tag, Calendar, FileText } from 'lucide-react';
 
 interface Props { isOpen: boolean; onClose: () => void; onSuccess?: () => void; }
 
@@ -38,35 +37,35 @@ export function ExpenseInputModal({ isOpen, onClose, onSuccess }: Props) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Input Pengeluaran" description="Catat pengeluaran kas (konsumsi, operasional, dll)." className="sm:max-w-md">
+    <Modal isOpen={isOpen} onClose={onClose} title="Input pengeluaran" description="Catat pengeluaran kas." className="sm:max-w-md">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5 flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5 text-red-600" />Nominal <span className="text-red-500">*</span></label>
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Nominal <span className="text-destructive">*</span></label>
           <Input type="number" min={1} placeholder="50000" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-          {amount && <p className="text-xs text-slate-500 mt-1">{formatCurrency(Number(amount) || 0)}</p>}
+          {amount && <p className="mt-1 text-xs text-muted-foreground">{formatCurrency(Number(amount) || 0)}</p>}
         </div>
         <div>
-          <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5 flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-red-600" />Kategori <span className="text-red-500">*</span></label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" required>
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Kategori <span className="text-destructive">*</span></label>
+          <select value={category} onChange={(e) => setCategory(e.target.value)} className="flex h-9 w-full rounded-md border bg-card px-3 text-sm text-card-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" required>
             <option value="">Pilih kategori</option>
             {expenseCategories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5 flex items-center gap-1.5"><FileText className="w-3.5 h-3.5 text-red-600" />Deskripsi <span className="text-red-500">*</span></label>
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Deskripsi <span className="text-destructive">*</span></label>
           <Input placeholder="Misal: Konsumsi rapat" value={description} onChange={(e) => setDescription(e.target.value)} required />
         </div>
         <div>
-          <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-red-600" />Tanggal</label>
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Tanggal</label>
           <Input type="date" value={expenseDate} onChange={(e) => setExpenseDate(e.target.value)} required />
         </div>
         <div>
-          <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">Catatan (Opsional)</label>
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Catatan (opsional)</label>
           <Input placeholder="Keterangan tambahan" value={notes} onChange={(e) => setNotes(e.target.value)} />
         </div>
-        <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+        <div className="flex items-center justify-end gap-2 border-t pt-4">
           <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>Batal</Button>
-          <Button type="submit" disabled={submitting} className="bg-red-600 hover:bg-red-700 flex-1 sm:flex-initial">{submitting ? 'Menyimpan...' : `Simpan ${amount ? formatCurrency(Number(amount) || 0) : ''}`}</Button>
+          <Button type="submit" disabled={submitting} className="flex-1 sm:flex-initial">{submitting ? 'Menyimpan...' : `Simpan ${amount ? formatCurrency(Number(amount) || 0) : ''}`}</Button>
         </div>
       </form>
     </Modal>

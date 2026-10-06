@@ -9,7 +9,7 @@ import { ExpenseInputModal } from '@/components/dashboard/ExpenseInputModal';
 import { ExpenseTable } from '@/components/dashboard/ExpenseTable';
 import { LoginModal } from '@/components/auth/LoginModal';
 import { Button } from '@/components/ui/button';
-import { Plus, Wallet, Sparkles, Lock, TrendingDown } from 'lucide-react';
+import { Plus, Lock, TrendingDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const MONTH_NAMES = [
@@ -60,7 +60,6 @@ export function DashboardClient({
 }: DashboardClientProps) {
   const router = useRouter();
 
-  // Active filter state
   const [currentMonth, setCurrentMonth] = React.useState<number>(
     initialData.period.month
   );
@@ -84,7 +83,6 @@ export function DashboardClient({
     else { setPendingExpense(true); setIsLoginModalOpen(true); }
   };
 
-  // Month & Year handlers: update state and navigate
   const handleMonthChange = (month: number) => {
     setCurrentMonth(month);
     setSelectedWeek(null);
@@ -109,31 +107,23 @@ export function DashboardClient({
   const monthName = MONTH_NAMES[currentMonth - 1] || 'September';
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner / Welcome Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 rounded-3xl p-6 text-white shadow-lg shadow-emerald-700/15 relative overflow-hidden">
-        {/* Subtle background decoration */}
-        <div className="absolute right-0 bottom-0 translate-x-10 translate-y-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-        
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-medium text-emerald-100 mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-            <span>Kas Basecamp • Rp 5.000 / Minggu</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 rounded-lg border bg-card p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Kas Basecamp · Rp 5.000 / minggu</p>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight text-card-foreground sm:text-2xl">
             Dashboard Kas Mingguan
           </h1>
-          <p className="text-xs sm:text-sm text-emerald-100/90 mt-1 max-w-lg">
-            Pantau akumulasi kas, periksa ketercapaian iuran mingguan, dan unduh rekapan data instan ke file CSV.
+          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+            Pantau akumulasi kas, capaian iuran mingguan, dan unduh rekapan CSV.
           </p>
         </div>
-
-        <div className="relative z-10 flex gap-2 self-start sm:self-auto flex-wrap">
-          <Button onClick={handleTriggerInput} size="lg" className="bg-white text-emerald-800 hover:bg-emerald-50 shadow-md font-bold text-sm sm:text-base rounded-2xl gap-2 border border-emerald-100">
-            {isAdmin ? <Plus className="w-5 h-5 text-emerald-600" /> : <Lock className="w-4 h-4 text-emerald-600" />}<span>Input Kas</span>
+        <div className="flex gap-2 self-start sm:self-auto">
+          <Button onClick={handleTriggerInput} className="gap-2">
+            {isAdmin ? <Plus className="h-4 w-4" /> : <Lock className="h-4 w-4" />}<span>Input Kas</span>
           </Button>
-          <Button onClick={handleTriggerExpense} size="lg" variant="outline" className="bg-white/10 text-white border-white/30 hover:bg-white hover:text-red-700 font-bold text-sm sm:text-base rounded-2xl gap-2 backdrop-blur">
-            {isAdmin ? <TrendingDown className="w-5 h-5" /> : <Lock className="w-4 h-4" />}<span>Pengeluaran</span>
+          <Button onClick={handleTriggerExpense} variant="outline" className="gap-2">
+            {isAdmin ? <TrendingDown className="h-4 w-4" /> : <Lock className="h-4 w-4" />}<span>Pengeluaran</span>
           </Button>
         </div>
       </div>
@@ -156,7 +146,6 @@ export function DashboardClient({
         year={currentYear}
       />
 
-      {/* 2. Interactive Weekly Chart (graphify) */}
       <WeeklyCashChart
         data={initialData.weeklyData}
         monthName={monthName}
@@ -187,12 +176,12 @@ export function DashboardClient({
         description="Silakan masuk dengan akun pengelola kas."
       />
 
-      <div className="fixed right-5 bottom-6 z-40 sm:hidden flex flex-col gap-3">
-        <button onClick={handleTriggerInput} className="w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xl shadow-emerald-600/40 hover:bg-emerald-700 active:scale-95 transition-all" aria-label="Input Kas">
-          {isAdmin ? <Plus className="w-7 h-7" /> : <Lock className="w-6 h-6" />}
+      <div className="fixed bottom-6 right-5 z-40 flex flex-col gap-2 sm:hidden">
+        <button onClick={handleTriggerInput} className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Input Kas">
+          {isAdmin ? <Plus className="h-5 w-5" /> : <Lock className="h-4 w-4" />}
         </button>
-        <button onClick={handleTriggerExpense} className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center shadow-xl shadow-red-600/40 hover:bg-red-700 active:scale-95 transition-all" aria-label="Pengeluaran">
-          {isAdmin ? <TrendingDown className="w-6 h-6" /> : <Lock className="w-6 h-6" />}
+        <button onClick={handleTriggerExpense} className="flex h-12 w-12 items-center justify-center rounded-full border bg-card text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Pengeluaran">
+          {isAdmin ? <TrendingDown className="h-5 w-5" /> : <Lock className="h-4 w-4" />}
         </button>
       </div>
     </div>

@@ -5,13 +5,10 @@ import {
   Users,
   UserPlus,
   Search,
-  CheckCircle2,
-  XCircle,
   Pencil,
   Trash2,
   Phone,
   ArrowLeft,
-  FileText,
   Lock,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -65,7 +62,6 @@ export function MemberManagementClient({
   const [isLoginModalOpen, setIsLoginModalOpen] = React.useState(false);
   const [editingMember, setEditingMember] = React.useState<MemberWithCount | null>(null);
 
-  // Form states
   const [formData, setFormData] = React.useState({
     name: '',
     phone: '',
@@ -73,12 +69,10 @@ export function MemberManagementClient({
   });
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  // Sync prop changes
   React.useEffect(() => {
     setMembers(initialMembers);
   }, [initialMembers]);
 
-  // Filtered members
   const filteredMembers = React.useMemo(() => {
     if (!searchQuery.trim()) return members;
     const query = searchQuery.toLowerCase();
@@ -93,7 +87,6 @@ export function MemberManagementClient({
   const activeCount = members.filter((m) => m.isActive).length;
   const inactiveCount = members.length - activeCount;
 
-  // Open Add Modal
   const handleOpenAdd = () => {
     if (!isAdmin) {
       setIsLoginModalOpen(true);
@@ -103,7 +96,6 @@ export function MemberManagementClient({
     setIsAddModalOpen(true);
   };
 
-  // Open Edit Modal
   const handleOpenEdit = (member: MemberWithCount) => {
     if (!isAdmin) {
       setIsLoginModalOpen(true);
@@ -118,18 +110,15 @@ export function MemberManagementClient({
     setIsEditModalOpen(true);
   };
 
-  // Handle Create Member
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) {
       toast.error('Nama anggota wajib diisi');
       return;
     }
-
     setIsSubmitting(true);
     const res = await createMember(formData);
     setIsSubmitting(false);
-
     if (res.success && res.member) {
       toast.success(`Anggota "${res.member.name}" berhasil ditambahkan!`);
       setIsAddModalOpen(false);
@@ -139,7 +128,6 @@ export function MemberManagementClient({
     }
   };
 
-  // Handle Update Member
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingMember) return;
@@ -147,14 +135,12 @@ export function MemberManagementClient({
       toast.error('Nama anggota wajib diisi');
       return;
     }
-
     setIsSubmitting(true);
     const res = await updateMember(editingMember.id, {
       ...formData,
       isActive: editingMember.isActive,
     });
     setIsSubmitting(false);
-
     if (res.success && res.member) {
       toast.success('Data anggota berhasil diperbarui!');
       setIsEditModalOpen(false);
@@ -164,7 +150,6 @@ export function MemberManagementClient({
     }
   };
 
-  // Handle Toggle Status
   const handleToggleStatus = async (member: MemberWithCount) => {
     if (!isAdmin) {
       setIsLoginModalOpen(true);
@@ -182,7 +167,6 @@ export function MemberManagementClient({
     }
   };
 
-  // Handle Delete
   const handleDelete = async (member: MemberWithCount) => {
     if (!isAdmin) {
       setIsLoginModalOpen(true);
@@ -195,7 +179,6 @@ export function MemberManagementClient({
     ) {
       return;
     }
-
     const res = await deleteMember(member.id);
     if (res.success) {
       toast.success(`Anggota ${member.name} berhasil dihapus`);
@@ -205,108 +188,69 @@ export function MemberManagementClient({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Breadcrumb & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-emerald-700 mb-2 transition-colors"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Kembali ke Dashboard
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Kembali ke dashboard
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <Users className="w-7 h-7 text-emerald-600" />
-            Master Data Anggota Kas
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="mt-1 flex items-center gap-2 text-xl font-semibold tracking-tight text-foreground"><Users className="h-5 w-5 text-accent" />Master Data Anggota Kas</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Kelola daftar anggota kas untuk kemudahan pemilihan saat pencatatan mingguan.
           </p>
         </div>
-
-        <Button
-          onClick={handleOpenAdd}
-          className="shadow-md shadow-emerald-600/20 flex items-center gap-2 self-start sm:self-auto"
-        >
-          {isAdmin ? <UserPlus className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-          <span>Tambah Anggota</span>
+        <Button onClick={handleOpenAdd} className="gap-2 self-start sm:self-auto">
+          {isAdmin ? <UserPlus className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+          Tambah anggota
         </Button>
       </div>
 
-      {/* KPI Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-slate-200/80">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-slate-500 tracking-wider">
-              Total Anggota Terdaftar
-            </CardTitle>
+            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total terdaftar</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-black text-slate-900">
-              {members.length}{' '}
-              <span className="text-sm font-normal text-slate-500">Orang</span>
-            </div>
+            <div className="text-xl font-semibold text-card-foreground">{members.length} <span className="text-sm font-normal text-muted-foreground">orang</span></div>
           </CardContent>
         </Card>
-
-        <Card className="border-emerald-200/70 bg-emerald-50/30">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-emerald-700 tracking-wider">
-              Anggota Aktif
-            </CardTitle>
+            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Aktif</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-black text-emerald-700">
-              {activeCount}{' '}
-              <span className="text-sm font-normal text-emerald-600/80">Orang</span>
-            </div>
+            <div className="text-xl font-semibold text-card-foreground">{activeCount} <span className="text-sm font-normal text-muted-foreground">orang</span></div>
           </CardContent>
         </Card>
-
-        <Card className="border-slate-200/80">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-slate-500 tracking-wider">
-              Anggota Nonaktif
-            </CardTitle>
+            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Nonaktif</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-black text-slate-500">
-              {inactiveCount}{' '}
-              <span className="text-sm font-normal text-slate-400">Orang</span>
-            </div>
+            <div className="text-xl font-semibold text-muted-foreground">{inactiveCount} <span className="text-sm font-normal text-muted-foreground">orang</span></div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Table & Search Toolbar */}
-      <Card className="border-slate-200/80 shadow-sm">
-        <CardHeader className="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              placeholder="Cari nama atau no. kontak..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-slate-50 border-slate-200 focus:bg-white"
-            />
+      <Card className="overflow-hidden">
+        <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative flex-1 sm:max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder="Cari nama atau kontak..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
           </div>
-          <div className="text-xs text-slate-500 font-medium">
-            Menampilkan {filteredMembers.length} dari {members.length} anggota
-          </div>
-        </CardHeader>
+          <span className="text-xs text-muted-foreground">{filteredMembers.length} dari {members.length} anggota</span>
+        </div>
 
         <CardContent className="p-0">
           {filteredMembers.length === 0 ? (
-            <div className="text-center py-12 px-4">
-              <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-base font-semibold text-slate-700">
-                Tidak ada data anggota ditemukan
-              </p>
-              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                {searchQuery
-                  ? `Tidak ada hasil untuk kata kunci "${searchQuery}". Coba kata kunci lain.`
-                  : 'Belum ada anggota kas. Klik tombol "Tambah Anggota" di atas untuk menambahkan.'}
+            <div className="px-4 py-12 text-center">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md border bg-muted">
+                <Users className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="mt-3 text-sm font-medium text-card-foreground">Tidak ada anggota</p>
+              <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
+                {searchQuery ? `Tidak ada hasil untuk "${searchQuery}".` : 'Belum ada anggota. Tambahkan anggota pertama.'}
               </p>
             </div>
           ) : (
@@ -314,88 +258,54 @@ export function MemberManagementClient({
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12 text-center">No</TableHead>
-                  <TableHead>Nama Anggota</TableHead>
-                  <TableHead className="hidden sm:table-cell">Kontak / HP</TableHead>
+                  <TableHead>Nama</TableHead>
+                  <TableHead className="hidden sm:table-cell">Kontak</TableHead>
                   <TableHead className="hidden md:table-cell">Catatan</TableHead>
-                  <TableHead className="text-center">Total Transaksi</TableHead>
+                  <TableHead className="text-center">Transaksi</TableHead>
                   <TableHead className="text-center">Status</TableHead>
                   {isAdmin && <TableHead className="text-right">Aksi</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredMembers.map((member, idx) => (
-                  <TableRow key={member.id} className="hover:bg-slate-50/80">
-                    <TableCell className="text-center font-medium text-slate-400 text-xs">
-                      {idx + 1}
-                    </TableCell>
-                    <TableCell className="font-semibold text-slate-900">
-                      <div>{member.name}</div>
-                      <div className="sm:hidden text-xs text-slate-500 mt-0.5 flex items-center gap-1">
-                        {member.phone && (
-                          <span className="flex items-center gap-0.5">
-                            <Phone className="w-3 h-3 text-slate-400" />
-                            {member.phone}
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell text-slate-600 text-xs">
-                      {member.phone ? (
-                        <span className="flex items-center gap-1.5">
-                          <Phone className="w-3.5 h-3.5 text-slate-400" />
-                          {member.phone}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 italic">-</span>
+                  <TableRow key={member.id}>
+                    <TableCell className="text-center text-xs text-muted-foreground">{idx + 1}</TableCell>
+                    <TableCell>
+                      <div className="text-sm font-medium text-card-foreground">{member.name}</div>
+                      {member.phone && (
+                        <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground sm:hidden">
+                          <Phone className="h-3 w-3 text-muted-foreground" />{member.phone}
+                        </div>
                       )}
                     </TableCell>
-                    <TableCell className="hidden md:table-cell text-slate-500 text-xs max-w-xs truncate">
-                      {member.notes || <span className="text-slate-400 italic">-</span>}
+                    <TableCell className="hidden text-xs text-muted-foreground sm:table-cell">
+                      {member.phone ? <span className="inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-muted-foreground" />{member.phone}</span> : <span className="text-muted-foreground/60">—</span>}
+                    </TableCell>
+                    <TableCell className="hidden max-w-[14rem] truncate text-xs text-muted-foreground md:table-cell">
+                      {member.notes || <span className="text-muted-foreground/60">—</span>}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="secondary" className="font-mono text-[11px]">
-                        {member._count.transactions}x Bayar
-                      </Badge>
+                      <Badge variant="secondary" className="text-[11px]">{member._count.transactions}×</Badge>
                     </TableCell>
                     <TableCell className="text-center">
                       <button
                         onClick={() => handleToggleStatus(member)}
-                        className={`transition-opacity ${isAdmin ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
-                        title={isAdmin ? "Klik untuk mengubah status aktif/nonaktif" : "Status keanggotaan"}
+                        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+                        title={isAdmin ? 'Ubah status' : 'Status keanggotaan'}
                       >
-                        {member.isActive ? (
-                          <Badge variant="success" className="gap-1">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            <span>Aktif</span>
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="gap-1 text-slate-400">
-                            <XCircle className="w-3 h-3 text-slate-400" />
-                            <span>Nonaktif</span>
-                          </Badge>
-                        )}
+                        <Badge variant={member.isActive ? 'success' : 'warning'}>
+                          {member.isActive ? 'Aktif' : 'Nonaktif'}
+                        </Badge>
                       </button>
                     </TableCell>
                     {isAdmin && (
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenEdit(member)}
-                            className="h-8 w-8 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50"
-                            title="Edit Anggota"
-                          >
-                            <Pencil className="w-4 h-4" />
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(member)} className="h-8 w-8 text-muted-foreground hover:text-foreground" aria-label="Edit">
+                            <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(member)}
-                            className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
-                            title="Hapus Anggota"
-                          >
-                            <Trash2 className="w-4 h-4" />
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(member)} className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10" aria-label="Hapus">
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -408,142 +318,49 @@ export function MemberManagementClient({
         </CardContent>
       </Card>
 
-      {/* Modal Tambah Anggota */}
-      <Modal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        title="Tambah Anggota Baru"
-        description="Masukkan nama anggota kas untuk ditambahkan ke daftar master."
-      >
+      <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Tambah anggota" description="Masukkan data anggota baru.">
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-              Nama Lengkap <span className="text-red-500">*</span>
-            </label>
-            <Input
-              required
-              placeholder="Contoh: Budi Santoso"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              autoFocus
-            />
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Nama lengkap <span className="text-destructive">*</span></label>
+            <Input required placeholder="Budi Santoso" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} autoFocus />
           </div>
-
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-              Nomor WhatsApp / HP (Opsional)
-            </label>
-            <Input
-              type="tel"
-              placeholder="Contoh: 08123456789"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
-            />
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">No. WhatsApp (opsional)</label>
+            <Input type="tel" placeholder="08123456789" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
           </div>
-
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-              Catatan Tambahan (Opsional)
-            </label>
-            <Input
-              placeholder="Contoh: Divisi Acara, Anggota Baru"
-              value={formData.notes}
-              onChange={(e) =>
-                setFormData({ ...formData, notes: e.target.value })
-              }
-            />
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Catatan (opsional)</label>
+            <Input placeholder="Divisi / keterangan" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} />
           </div>
-
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsAddModalOpen(false)}
-              disabled={isSubmitting}
-            >
-              Batal
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Menyimpan...' : 'Simpan Anggota'}
-            </Button>
+          <div className="flex justify-end gap-2 border-t pt-4">
+            <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)} disabled={isSubmitting}>Batal</Button>
+            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Menyimpan...' : 'Simpan'}</Button>
           </div>
         </form>
       </Modal>
 
-      {/* Modal Edit Anggota */}
-      <Modal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        title="Edit Data Anggota"
-        description={`Memperbarui informasi anggota: ${editingMember?.name || ''}`}
-      >
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit anggota" description={editingMember ? `Mengubah ${editingMember.name}` : undefined}>
         <form onSubmit={handleUpdate} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-              Nama Lengkap <span className="text-red-500">*</span>
-            </label>
-            <Input
-              required
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-            />
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Nama lengkap <span className="text-destructive">*</span></label>
+            <Input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
           </div>
-
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-              Nomor WhatsApp / HP
-            </label>
-            <Input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
-            />
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">No. WhatsApp</label>
+            <Input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
           </div>
-
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-              Catatan Tambahan
-            </label>
-            <Input
-              value={formData.notes}
-              onChange={(e) =>
-                setFormData({ ...formData, notes: e.target.value })
-              }
-            />
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Catatan</label>
+            <Input value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} />
           </div>
-
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsEditModalOpen(false)}
-              disabled={isSubmitting}
-            >
-              Batal
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
-            </Button>
+          <div className="flex justify-end gap-2 border-t pt-4">
+            <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)} disabled={isSubmitting}>Batal</Button>
+            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Menyimpan...' : 'Simpan'}</Button>
           </div>
         </form>
       </Modal>
 
-      {/* Login Modal for unauthorized guests */}
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        onSuccess={() => setIsAddModalOpen(true)}
-        title="Login Diperlukan"
-        description="Silakan masuk sebagai admin untuk mengelola daftar anggota kas."
-      />
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} onSuccess={() => setIsAddModalOpen(true)} title="Login diperlukan" description="Masuk sebagai admin untuk mengelola anggota." />
     </div>
   );
 }
