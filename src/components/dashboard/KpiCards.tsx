@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils';
 
 interface KpiCardsProps {
@@ -13,11 +14,6 @@ interface KpiCardsProps {
   netBalanceMonth?: number;
   monthTxCount?: number;
   monthExpenseCount?: number;
-  totalCurrentWeekAmount: number;
-  targetWeek: number;
-  uniqueMembersPaidThisWeek: number;
-  activeMembersCount: number;
-  paymentRatio: number;
   monthName: string;
   year?: number;
 }
@@ -31,11 +27,6 @@ export function KpiCards({
   netBalanceMonth,
   monthTxCount = 0,
   monthExpenseCount = 0,
-  totalCurrentWeekAmount,
-  targetWeek,
-  uniqueMembersPaidThisWeek,
-  activeMembersCount,
-  paymentRatio,
   monthName,
   year,
 }: KpiCardsProps) {
@@ -76,27 +67,6 @@ export function KpiCards({
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Kas minggu ke-{targetWeek}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-baseline justify-between gap-2">
-            <div className="text-xl font-semibold tracking-tight text-card-foreground">
-              {formatCurrency(totalCurrentWeekAmount)}
-            </div>
-            <span className="rounded-md border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-              {paymentRatio}% lunas
-            </span>
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {uniqueMembersPaidThisWeek} dari {activeMembersCount} anggota
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-2">
           <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pengeluaran {monthName}</CardTitle>
         </CardHeader>
         <CardContent>
@@ -111,7 +81,9 @@ export function KpiCards({
         </CardHeader>
         <CardContent>
           <div className="text-xl font-semibold tracking-tight text-card-foreground">{formatCurrency(netMonth)}</div>
-          <p className="mt-1 text-xs text-muted-foreground">All-time: {formatCurrency(netAll)}</p>
+          <div className="mt-2">
+            <Badge variant="success" className="text-xs">Sisa saldo {formatCurrency(netAll)}</Badge>
+          </div>
         </CardContent>
       </Card>
     </div>

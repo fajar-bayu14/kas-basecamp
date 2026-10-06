@@ -39,11 +39,6 @@ interface DashboardClientProps {
       netBalanceMonth?: number;
       monthTxCount: number;
       monthExpenseCount?: number;
-      totalCurrentWeekAmount: number;
-      targetWeekForKpi: number;
-      uniqueMembersPaidThisWeek: number;
-      activeMembersCount: number;
-      paymentRatio: number;
     };
     weeklyData: any[];
     transactions: any[];
@@ -153,11 +148,6 @@ export function DashboardClient({
         netBalanceMonth={initialData.kpi.netBalanceMonth}
         monthTxCount={initialData.kpi.monthTxCount}
         monthExpenseCount={initialData.kpi.monthExpenseCount}
-        totalCurrentWeekAmount={initialData.kpi.totalCurrentWeekAmount}
-        targetWeek={initialData.kpi.targetWeekForKpi}
-        uniqueMembersPaidThisWeek={initialData.kpi.uniqueMembersPaidThisWeek}
-        activeMembersCount={initialData.kpi.activeMembersCount}
-        paymentRatio={initialData.kpi.paymentRatio}
         monthName={monthName}
         year={currentYear}
       />

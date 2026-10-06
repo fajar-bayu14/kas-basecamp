@@ -121,11 +121,6 @@ export async function getDashboardData(
     const currentYear = filterYear || now.getFullYear();
     const currentMonth = filterMonth || (now.getMonth() + 1);
 
-    // Determine current calendar week (1-5) based on day of month
-    const currentDay = now.getDate();
-    const activeCurrentWeek = Math.min(Math.ceil(currentDay / 7), 5);
-    const targetWeekForKpi = filterWeek ? filterWeek : activeCurrentWeek;
-
     const [activeMembersCount, totalCashAggregation, totalExpenseAgg, monthTransactions, monthExpenses] =
       await Promise.all([
         prisma.member.count({ where: { isActive: true } }),
@@ -146,20 +141,6 @@ export async function getDashboardData(
     const totalAllTimeExpense = totalExpenseAgg._sum.amount || 0;
     const totalMonthAmount = monthTransactions.reduce((sum, t) => sum + t.amount, 0);
     const totalMonthExpense = monthExpenses.reduce((sum: number, e: any) => sum + e.amount, 0);
-
-    // Filtered by week for current week KPI
-    const currentWeekTransactions = monthTransactions.filter(
-      (t) => t.weekNumber === targetWeekForKpi
-    );
-    const totalCurrentWeekAmount = currentWeekTransactions.reduce(
-      (sum, t) => sum + t.amount,
-      0
-    );
-
-    // Unique members paid this week
-    const uniqueMembersPaidThisWeek = new Set(
-      currentWeekTransactions.map((t) => t.memberId)
-    ).size;
 
     // 3. Weekly Aggregation (W1 to W5)
     const weeklyData = [1, 2, 3, 4, 5].map((w) => {
@@ -193,11 +174,6 @@ export async function getDashboardData(
         netBalanceMonth: totalMonthAmount - totalMonthExpense,
         monthTxCount: monthTransactions.length,
         monthExpenseCount: monthExpenses.length,
-        totalCurrentWeekAmount,
-        targetWeekForKpi,
-        uniqueMembersPaidThisWeek,
-        activeMembersCount,
-        paymentRatio: activeMembersCount > 0 ? Math.round((uniqueMembersPaidThisWeek / activeMembersCount) * 100) : 0,
       },
       weeklyData,
       transactions: displayTransactions.map((tx, index) => ({
@@ -219,8 +195,6 @@ export async function getDashboardData(
         totalAllTimeAmount: 0, totalAllTimeExpense: 0, netBalanceAllTime: 0,
         totalMonthAmount: 0, totalMonthExpense: 0, netBalanceMonth: 0,
         monthTxCount: 0, monthExpenseCount: 0,
-        totalCurrentWeekAmount: 0, targetWeekForKpi: 1,
-        uniqueMembersPaidThisWeek: 0, activeMembersCount: 0, paymentRatio: 0,
       },
       weeklyData: [], transactions: [], expenses: [],
       period: { month: filterMonth || (now.getMonth() + 1), year: filterYear || now.getFullYear(), week: null },
