@@ -1,32 +1,29 @@
-*Kas Basecamp — Changelog*
-Share ke teman-teman basecamp. Bahasa santai, no jargon berlebihan.
-
-━━━━━━━━━━━━━━━━━━━━
-* v1.1 — 6 Okt 2026 *
-━━━━━━━━━━━━━━━━━━━━
+*Kas Basecamp Changelog [v1.1 | 6 Okt 2026]*
+Akses app-nya disini : https://kas-bc.eastkode.my.id/
 
 ✨ *BARU*
-• *Bayar Kas via QR (Guest)* — Buat yang belum login / bukan admin, sekarang ada tombol *Bayar via QR* di desktop dan *FAB QR* hijau di HP. Tap → lihat QR QRIS asli → *Unduh QR* atau langsung *Konfirmasi via WhatsApp* (wa.me/62895614790050 dengan pesan otomatis _"Halo Admin, saya sudah transfer kas mingguan."_)
-• *QRIS Asli No Edit* — File ```public/qr-kas.png``` pakai file asli GoPay Merchant (1129x1600, 638KB) tanpa resize/compress. Scan tetap valid.
+• *Bayar Kas via QR (Guest)* Buat yang belum login / bukan admin, sekarang ada tombol *Bayar via QR* di desktop dan *FAB QR* hijau di HP. Tap → lihat QR QRIS asli → *Unduh QR* atau langsung *Konfirmasi via WhatsApp* (wa.me/62895614790050 dengan pesan otomatis _"Halo Admin, saya sudah transfer kas mingguan."_)
+• *QRIS Asli No Edit* File ```public/qr-kas.png``` pakai file asli GoPay Merchant (1129x1600, 638KB) tanpa resize/compress. Scan tetap valid.
 
 🎨 *TAMPILAN*
-• *Dark OLED Full* — Semua halaman (```/``` dan ```/anggota```) sekarang ikut token ```design-system/kas-basecamp/MASTER.md```: background ```#020617```, card ```#0E1223```, aksen ```#22C55E```, border ```#334155```. Kontras lulus WCAG AA (15.9:1).
-• *Fix Judul Anggota* — _Master Data Anggota Kas_ yang sempat hilang / pucat di dark mode balik lagi dengan ikon accent. Angka KPI _0 Orang_ sekarang kebaca.
-• *Badge Lembut* — Status Aktif → hijau soft, Nonaktif → abu soft. Nggak norak.
+• *Dark OLED Full* Semua halaman (```/``` dan ```/anggota```) sekarang ikut token ```design-system/kas-basecamp/MASTER.md```: background ```#020617```, card ```#0E1223```, aksen ```#22C55E```, border ```#334155```. Kontras lulus WCAG AA (15.9:1).
+• *Fix Judul Anggota* _Master Data Anggota Kas_ yang sempat hilang / pucat di dark mode balik lagi dengan ikon accent. Angka KPI _0 Orang_ sekarang kebaca.
+• *Badge Lembut* Status Aktif → hijau soft, Nonaktif → abu soft. Nggak norak.
 
 🧹 *RAPI-RAPI*
-• FAB admin tetap *2 tombol* (Input Kas + Pengeluaran). Guest cuma *1 FAB QR* — nggak numpuk.
-• Copy dibenerin: _"Pindai QR untuk transfer. Simpan QR jika perlu, lalu konfirmasi ke admin via WhatsApp. Preferensi tunai? Bayar langsung ke admin."_ — pendek, jelas.
+• FAB admin tetap *2 tombol* (Input Kas + Pengeluaran). Guest cuma *1 FAB QR* nggak numpuk.
+• Copy dibenerin: _"Pindai QR untuk transfer. Simpan QR jika perlu, lalu konfirmasi ke admin via WhatsApp. Preferensi tunai? Bayar langsung ke admin."_ pendek, jelas.
 
 🔒 *TETAP AMAN*
 • Nggak ada logic / props / handler yang diubah. Cuma ganti warna & FAB.
 
-━━━━━━━━━━━━━━━━━━━━
-*Cara Coba*
-━━━━━━━━━━━━━━━━━━━━
+*Cara Coba:*
 1. Buka ```/``` sebagai guest → lihat tombol *Bayar via QR* (desktop) / FAB hijau QR (HP)
 2. Tap → modal → *Unduh QR* atau *Konfirmasi via WhatsApp*
 3. Login admin → FAB balik jadi Input Kas + Pengeluaran seperti biasa
 
 Ada saran? Ping aja di WA admin 🙏
 wa.me/62895614790050
+
+Link Repo yang mau belajar: https://github.com/fajar-bayu14/kas-basecamp (jgn lupa bintangnya, wkwkwk)
+Link Apps: https://kas-bc.eastkode.my.id/
